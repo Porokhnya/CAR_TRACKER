@@ -8,8 +8,17 @@
 MPU9250_DMP imu; // наш MPU9250
 //--------------------------------------------------------------------------------------------------------------------------------------
 #define GPS_BAUD 115200 // скорость работы с портом GPS
-#define GPS_SERIAL Serial1 // какой Serial используем для работы с GPS
+#define GPS_SERIAL Serial3  // какой Serial используем для работы с GPS
 Ublox M6_Gps; // наш GPS-трекер
+// LoRa pin
+#define csPin 8
+#define resetPin 9 
+#define irqPin 7
+
+const int ledPin =  LED_BUILTIN;// the number of the LED pin
+//const int ledPin =  13;         // the number of the LED pin
+int ledState = LOW;             // ledState used to set the LED
+
 
 // Altitude - Latitude - Longitude - N Satellites
 float gpsArray[] = {0, 0, 0, 0};
@@ -35,12 +44,46 @@ void setup()
   Serial.begin(115200);
   GPS_SERIAL.begin(GPS_BAUD);
   
-  RTCClock.begin(0); // часы на первом интерфейсе I2C (поменять на 1, если надо на второй интерфейс I2C
-  LoRa.onReceive(onLoraReceive);
+  RTCClock.begin(1); // часы на первом интерфейсе I2C (поменять на 1, если надо на второй интерфейс I2C
+  pinMode(ledPin, OUTPUT);
+  // Set sketch compiling time
+ //RTCClock.setTime(10,5,16,5,9,2,18);
   
-  // LoRa.setPins(csPin, resetPin, irqPin);// set CS, reset, IRQ pin
-  // LoRa.begin(433E6);  // initialize ratio at 433 MHz
-  LoRa.receive(); // переключаемся на приём
+ DS3231Time tm = RTCClock.getTime();
+ 
+ 
+  /*
+  tm.dayOfMonth
+  tm.month
+  tm.year
+
+  tm.hour
+  tm.minute
+  tm.second
+*/
+  String timeString = RTCClock.getTimeStr(tm);
+  String dateString = RTCClock.getDateStr(tm);
+
+  Serial.println(dateString);
+  Serial.println(timeString);
+
+  
+ // LoRa.onReceive(onLoraReceive);
+  
+  LoRa.setPins(csPin, resetPin, irqPin);// set CS, reset, IRQ pin
+  Serial.println("LoRa Receiver");
+
+  if (!LoRa.begin(868E6)) // initialize ratio at 868 MHz
+  {
+    Serial.println("Starting LoRa failed!");
+    while (1);
+  }
+  else
+  {
+      Serial.println("Starting LoRa successfully!");
+  }
+  
+  //LoRa.receive(); // переключаемся на приём
 
   // Call imu.begin() to verify communication with and
   // initialize the MPU-9250 to it's default values.
@@ -88,7 +131,7 @@ void setup()
   // This value can range between: 1-100Hz
   imu.setCompassSampleRate(10); // Set mag rate to 10Hz
 
-  
+
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 void printIMUData(void)
@@ -172,12 +215,43 @@ void handleIMU()
   
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
+
+void testLoraReceive()
+{
+  // try to parse packet
+  int packetSize = LoRa.parsePacket();
+  if (packetSize) {
+    // received a packet
+    Serial.print("Received packet '");
+     // read packet
+    while (LoRa.available()) {
+      Serial.print((char)LoRa.read());
+    }
+
+    // print RSSI of packet
+    Serial.print("' with RSSI ");
+    Serial.println(LoRa.packetRssi());
+      if (ledState == LOW) {
+      ledState = HIGH;
+    } else {
+      ledState = LOW;
+    }
+    // set the LED with the ledState of the variable:
+    digitalWrite(ledPin, ledState);
+  }
+
+  
+}
+
+
+
+
 void loop() 
 {
 
-  /*
-  DS3231Time tm = RTCClock.getTime();
   
+ // DS3231Time tm = RTCClock.getTime();
+  /*
   tm.dayOfMonth
   tm.month
   tm.year
@@ -185,10 +259,10 @@ void loop()
   tm.hour
   tm.minute
   tm.second
-
-  String timeString = RTCClock.getTimeStr(tm);
-  String dateString = RTCClock.getDateStr(tm);
-  */
+*/
+ // String timeString = RTCClock.getTimeStr(tm);
+ // String dateString = RTCClock.getDateStr(tm);
+  
 
   /*
    // отсыл пакета в LoRa
@@ -201,6 +275,7 @@ void loop()
 
   handleIMU();
   handleGPS();
+  testLoraReceive();
 
   
 }
