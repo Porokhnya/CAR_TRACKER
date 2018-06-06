@@ -1,26 +1,13 @@
 #include <MPU9250_RegisterMap.h>
 #include <SparkFunMPU9250-DMP.h>
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#include "CONFIG.h"
-#include "DS3231.h" // подключаем часы реального времени
-#include "LoRa.h" // LoRa
+#include "Settings.h"
 #include "Ublox.h" // Ublox
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 MPU9250_DMP imu; // наш MPU9250
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#define GPS_BAUD 9600 // скорость работы с портом GPS
-#define GPS_SERIAL Serial1  // какой Serial используем для работы с GPS
 Ublox M6_Gps; // наш GPS-трекер
-// LoRa pin
-#define csPin 8
-#define resetPin 9 
-#define irqPin 7
-
-const int ledPin =  LED_BUILTIN;// the number of the LED pin
-//const int ledPin =  13;         // the number of the LED pin
 int ledState = LOW;             // ledState used to set the LED
-
-
 // Altitude - Latitude - Longitude - N Satellites
 float gpsArray[] = {0, 0, 0, 0};
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -42,11 +29,11 @@ void onLoraReceive(int packetSize)
 void setup() 
 {
 
-  Serial.begin(115200);
+  Serial.begin(SERIAL_SPEED);
+  Settings.begin();
+  
   GPS_SERIAL.begin(GPS_BAUD);
   
-  RTCClock.begin(1); // часы на первом интерфейсе I2C (поменять на 1, если надо на второй интерфейс I2C
-  pinMode(ledPin, OUTPUT);
   // Set sketch compiling time
  //RTCClock.setTime(10,5,16,5,9,2,18);
   
@@ -69,22 +56,7 @@ void setup()
   Serial.println(timeString);
 
   
- // LoRa.onReceive(onLoraReceive);
-  
-  LoRa.setPins(csPin, resetPin, irqPin);// set CS, reset, IRQ pin
-  DBGLN("LoRa Receiver");
 
-  if (!LoRa.begin(868E6)) // initialize ratio at 868 MHz
-  {
-    DBGLN("Starting LoRa failed!");
-    while (1);
-  }
-  else
-  {
-      DBGLN("Starting LoRa successfully!");
-  }
-  
-  //LoRa.receive(); // переключаемся на приём
 
   // Call imu.begin() to verify communication with and
   // initialize the MPU-9250 to it's default values.
@@ -239,7 +211,7 @@ void testLoraReceive()
       ledState = LOW;
     }
     // set the LED with the ledState of the variable:
-    digitalWrite(ledPin, ledState);
+    digitalWrite(LED_PIN, ledState);
   }
 
   
