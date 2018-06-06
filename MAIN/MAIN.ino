@@ -11,21 +11,6 @@ int ledState = LOW;             // ledState used to set the LED
 // Altitude - Latitude - Longitude - N Satellites
 float gpsArray[] = {0, 0, 0, 0};
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void onLoraReceive(int packetSize)
-{
-  if(packetSize < 1)
-    return;
-
-  // тут разбор пришедшего пакета
-/*  
-  // read packet
-  for (int i = 0; i < packetSize; i++) 
-  {
-    Serial.print((char)LoRa.read());
-  }
- */
-}
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void setup() 
 {
 
@@ -219,21 +204,6 @@ void testLoraReceive()
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void loop() 
 {
-
-  
- // DS3231Time tm = RTCClock.getTime();
-  /*
-  tm.dayOfMonth
-  tm.month
-  tm.year
-
-  tm.hour
-  tm.minute
-  tm.second
-*/
- // String timeString = RTCClock.getTimeStr(tm);
- // String dateString = RTCClock.getDateStr(tm);
-  
 
   /*
    // отсыл пакета в LoRa
