@@ -1,3 +1,4 @@
+#include "CONFIG.h"
 #include <MPU9250_RegisterMap.h>
 #include <SparkFunMPU9250-DMP.h>
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -71,16 +72,16 @@ void setup()
  // LoRa.onReceive(onLoraReceive);
   
   LoRa.setPins(csPin, resetPin, irqPin);// set CS, reset, IRQ pin
-  Serial.println("LoRa Receiver");
+  DBGLN("LoRa Receiver");
 
   if (!LoRa.begin(868E6)) // initialize ratio at 868 MHz
   {
-    Serial.println("Starting LoRa failed!");
+    DBGLN("Starting LoRa failed!");
     while (1);
   }
   else
   {
-      Serial.println("Starting LoRa successfully!");
+      DBGLN("Starting LoRa successfully!");
   }
   
   //LoRa.receive(); // переключаемся на приём
@@ -93,9 +94,9 @@ void setup()
   {
     while (1)
     {
-      Serial.println("Unable to communicate with MPU-9250");
-      Serial.println("Check connections, and try again.");
-      Serial.println();
+      DBGLN("Unable to communicate with MPU-9250");
+      DBGLN("Check connections, and try again.");
+      DBGLN();
       delay(5000);
     }
   }
@@ -153,14 +154,14 @@ void printIMUData(void)
   float magY = imu.calcMag(imu.my);
   float magZ = imu.calcMag(imu.mz);
   
-  Serial.println("Accel: " + String(accelX) + ", " +
+  DBGLN("Accel: " + String(accelX) + ", " +
               String(accelY) + ", " + String(accelZ) + " g");
-  Serial.println("Gyro: " + String(gyroX) + ", " +
+  DBGLN("Gyro: " + String(gyroX) + ", " +
               String(gyroY) + ", " + String(gyroZ) + " dps");
-  Serial.println("Mag: " + String(magX) + ", " +
+  DBGLN("Mag: " + String(magX) + ", " +
               String(magY) + ", " + String(magZ) + " uT");
-  Serial.println("Time: " + String(imu.time) + " ms");
-  Serial.println();
+  DBGLN("Time: " + String(imu.time) + " ms");
+  DBGLN();
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 void handleGPS()
@@ -182,11 +183,13 @@ void handleGPS()
 
            for(byte i = 0; i < sizeof(gpsArray)/sizeof(gpsArray[0]); i++) 
             {
+              #ifdef _DEBUG
               Serial.print(gpsArray[i], 6);
-              Serial.print(" ");
+              #endif
+              DBG(" ");
             }
             
-            Serial.println("");         
+            DBGLN("");         
         }
   }
  
@@ -222,15 +225,15 @@ void testLoraReceive()
   int packetSize = LoRa.parsePacket();
   if (packetSize) {
     // received a packet
-    Serial.print("Received packet '");
+    DBG("Received packet '");
      // read packet
     while (LoRa.available()) {
-      Serial.print((char)LoRa.read());
+      DBG((char)LoRa.read());
     }
 
     // print RSSI of packet
-    Serial.print("' with RSSI ");
-    Serial.println(LoRa.packetRssi());
+    DBG("' with RSSI ");
+    DBGLN(LoRa.packetRssi());
       if (ledState == LOW) {
       ledState = HIGH;
     } else {
