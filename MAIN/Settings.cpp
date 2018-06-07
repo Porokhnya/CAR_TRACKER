@@ -29,19 +29,19 @@ void SettingsClass::begin()
 
  // LoRa.onReceive(onLoraReceive);  
   LoRa.setPins(LORA_CS_PIN, LORA_RESET_PIN, LORA_IRQ_PIN);// set CS, reset, IRQ pin
-  DBGLN("Init LoRa...");
+  DBGLN(F("Init LoRa..."));
 
   if (!LoRa.begin(LORA_FREQ)) // initialize ratio at 868 MHz
   {
-    DBGLN("Starting LoRa failed!");
+    DBGLN(F("Starting LoRa failed!"));
     while (1);
   }
   else
   {
-      DBGLN("Starting LoRa successfully!");
+      DBGLN(F("Starting LoRa successfully!"));
   }
   
-  //LoRa.receive(); // переключаемся на приём
+  LoRa.receive(); // переключаемся на приём
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

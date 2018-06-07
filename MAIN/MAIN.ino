@@ -19,32 +19,12 @@ void setup()
 
   DBGLN(F("Setup SIM800..."));
   SIM800.begin();
+
+
+  DBGLN(F("Setup GPS..."));
   
   GPS_SERIAL.begin(GPS_BAUD);
   
-  // Set sketch compiling time
- //RTCClock.setTime(10,5,16,5,9,2,18);
-  
- DS3231Time tm = RTCClock.getTime();
- 
- 
-  /*
-  tm.dayOfMonth
-  tm.month
-  tm.year
-
-  tm.hour
-  tm.minute
-  tm.second
-*/
-  String timeString = RTCClock.getTimeStr(tm);
-  String dateString = RTCClock.getDateStr(tm);
-
-  Serial.println(dateString);
-  Serial.println(timeString);
-
-  
-
 
   // Call imu.begin() to verify communication with and
   // initialize the MPU-9250 to it's default values.
@@ -92,6 +72,18 @@ void setup()
   // This value can range between: 1-100Hz
   imu.setCompassSampleRate(10); // Set mag rate to 10Hz
 
+
+  // Set sketch compiling time
+ //RTCClock.setTime(10,5,16,5,9,2,18);
+  
+  DS3231Time tm = RTCClock.getTime();
+  String timeString = RTCClock.getTimeStr(tm);
+  String dateString = RTCClock.getDateStr(tm);
+
+  Serial.print(F("READY, "));
+  Serial.print(dateString);
+  Serial.print(" ");
+  Serial.println(timeString);
 
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
