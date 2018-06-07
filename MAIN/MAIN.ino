@@ -21,8 +21,7 @@ void setup()
   SIM800.begin();
 
 
-  DBGLN(F("Setup GPS..."));
-  
+  DBGLN(F("Setup GPS..."));  
   GPS_SERIAL.begin(GPS_BAUD);
   
 
