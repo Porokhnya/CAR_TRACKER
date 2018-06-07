@@ -16,6 +16,9 @@ void setup()
 
   Serial.begin(SERIAL_SPEED);
   Settings.begin();
+
+  DBGLN(F("Setup SIM800..."));
+  SIM800.begin();
   
   GPS_SERIAL.begin(GPS_BAUD);
   
@@ -51,9 +54,9 @@ void setup()
   {
     while (1)
     {
-      DBGLN("Unable to communicate with MPU-9250");
-      DBGLN("Check connections, and try again.");
-      DBGLN();
+      DBGLN(F("Unable to communicate with MPU-9250"));
+      DBGLN(F("Check connections, and try again."));
+      DBGLN("");
       delay(5000);
     }
   }
@@ -118,7 +121,7 @@ void printIMUData(void)
   DBGLN("Mag: " + String(magX) + ", " +
               String(magY) + ", " + String(magZ) + " uT");
   DBGLN("Time: " + String(imu.time) + " ms");
-  DBGLN();
+  DBGLN("");
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void handleGPS()
@@ -181,14 +184,14 @@ void testLoraReceive()
   int packetSize = LoRa.parsePacket();
   if (packetSize) {
     // received a packet
-    DBG("Received packet '");
+    DBG(F("Received packet '"));
      // read packet
     while (LoRa.available()) {
       DBG((char)LoRa.read());
     }
 
     // print RSSI of packet
-    DBG("' with RSSI ");
+    DBG(F("' with RSSI "));
     DBGLN(LoRa.packetRssi());
       if (ledState == LOW) {
       ledState = HIGH;
@@ -205,6 +208,9 @@ void testLoraReceive()
 void loop() 
 {
 
+  // обновляем SIM800
+  SIM800.update();
+
   /*
    // отсыл пакета в LoRa
    LoRa.beginPacket();
@@ -219,6 +225,11 @@ void loop()
   testLoraReceive();
 
   
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void yield()
+{
+  SIM800.readFromStream();
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
