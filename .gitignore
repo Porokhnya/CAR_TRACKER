@@ -4,3 +4,5 @@
 /MAIN/.vs
 /MAIN/__vm
 /MAIN/Release
+/MAIN/Libraries/SparkFunMPU9250_DMP
+/MAIN/Libraries/Parser_Ublox_Neo_M8N
