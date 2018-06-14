@@ -2075,13 +2075,14 @@ void CoreSIM800Transport::update()
               #ifdef GSM_DEBUG_MODE
                 DBGLN(F("SIM800: turn power ON!"));
               #endif
-              digitalWrite(GSM_REBOOT_PIN,GSM_POWER_ON);
+              digitalWrite(GSM_REBOOT_PIN,GSM_POWER_ON);              
             #endif
 
+            
             #ifdef USE_SIM800_POWERKEY
                 digitalWrite(SIM800_POWERKEY_PIN,SIM800_POWERKEY_OFF_LEVEL);
             #endif
-
+            
             machineState = sim800WaitInit;
             timer = millis();
             
@@ -2103,8 +2104,32 @@ void CoreSIM800Transport::update()
           { 
             #ifdef GSM_DEBUG_MODE
               DBGLN(F("SIM800: Power ON completed!"));
+              DBGLN(F("SIM800: Turn gate OFF!"));
             #endif
-            
+
+              digitalWrite(SIM800_GATE_KEY,SIM800_GATE_OFF);
+              
+               #ifdef GSM_DEBUG_MODE
+                  DBGLN(F("SIM800: check STATUS pin..."));
+               #endif
+
+                while (digitalRead(SIM800_STATUS_PIN) != LOW)
+                {
+                  delay(100);
+                }
+                               
+               #ifdef GSM_DEBUG_MODE
+                  DBGLN(F("SIM800: modem is OFF, turn gate ON..."));
+               #endif
+
+               digitalWrite(SIM800_GATE_KEY,SIM800_GATE_ON);
+               delay(1000);
+
+               #ifdef GSM_DEBUG_MODE
+                  DBGLN(F("SIM800: gate is ON!"));
+               #endif
+
+
               #ifdef USE_SIM800_POWERKEY
               
                #ifdef GSM_DEBUG_MODE
@@ -2113,8 +2138,8 @@ void CoreSIM800Transport::update()
                                 
                 digitalWrite(SIM800_POWERKEY_PIN,SIM800_POWERKEY_ON_LEVEL);
                 delay(SIM800_POWERKEY_PULSE_DURATION);        
-                digitalWrite(SIM800_POWERKEY_PIN,SIM800_POWERKEY_OFF_LEVEL);          
-                
+                digitalWrite(SIM800_POWERKEY_PIN,SIM800_POWERKEY_OFF_LEVEL);
+
               #endif            
 
             // теперь ждём загрузки модема
@@ -2132,8 +2157,28 @@ void CoreSIM800Transport::update()
         case sim800WaitBootBegin:
         {
           #ifdef GSM_DEBUG_MODE
-                DBGLN(F("SIM800: inited after reboot!"));
+                DBGLN(F("SIM800: inited after reboot, check STATUS pin..."));
           #endif
+
+              int count_status = 0;
+              while (digitalRead(SIM800_STATUS_PIN) == LOW)
+              {
+                count_status++;
+                if (count_status > 100)
+                {
+                #ifdef GSM_DEBUG_MODE
+                      DBGLN(F("SIM800: STATUS pin FAIL, restart!!!"));
+                #endif                  
+                  restart();
+                  machineState = sim800Reboot;
+                  return;
+                }
+                delay(100);
+              }
+
+                #ifdef GSM_DEBUG_MODE
+                      DBGLN(F("SIM800: power ON completed."));
+                #endif                 
           
           sendCommand(F("AT"));
           machineState = sim800WaitBoot;          
@@ -2188,6 +2233,10 @@ void CoreSIM800Transport::begin()
   GSM_SERIAL.begin(GSM_BAUD_RATE, SERIAL_8N1);
   restart();
 
+  pinMode(SIM800_STATUS_PIN,INPUT);
+  pinMode(SIM800_GATE_KEY,OUTPUT);
+  digitalWrite(SIM800_GATE_KEY,SIM800_GATE_OFF);
+
   #ifdef USE_GSM_REBOOT_PIN
   
     #ifdef GSM_DEBUG_MODE
@@ -2200,13 +2249,10 @@ void CoreSIM800Transport::begin()
 
   #ifdef USE_SIM800_POWERKEY
       pinMode(SIM800_POWERKEY_PIN,OUTPUT);
+      digitalWrite(SIM800_POWERKEY_PIN, SIM800_POWERKEY_OFF_LEVEL);
   #endif
   
   machineState = sim800Reboot;
-
-  #ifdef GSM_DEBUG_MODE
-    DBGLN(F("SIM800: started."));
-  #endif
 
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
