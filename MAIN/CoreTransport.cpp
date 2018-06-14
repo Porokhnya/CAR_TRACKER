@@ -2009,7 +2009,7 @@ void CoreSIM800Transport::update()
                         {
                           // ещё не зарегистрированы
                             flags.isModuleRegistered = false;
-                            idleTime = 5000; // повторим через 5 секунд
+                            idleTime = GSM_CHECK_REGISTRATION_INTERVAL; // повторим через 5 секунд
                             flags.onIdleTimer = true;
                             idleTimer = millis();
                             // добавляем ещё раз эту команду
