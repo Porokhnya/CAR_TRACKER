@@ -375,7 +375,7 @@ void CoreSIM800Transport::sendCommand(const String& command, bool addNewLine)
     // записали байтик
     workStream->write(command[i]);
 
-    // прочитали, что пришло от ESP
+    // прочитали, что пришло от SIM800
     readFromStream();
 
    #ifdef USE_WIFI_MODULE
@@ -458,7 +458,7 @@ void CoreSIM800Transport::sendCommand(SIM800Commands command)
       #ifdef GSM_DEBUG_MODE
       DBGLN(F("SIM800: Activate GPRS connection..."));
       #endif
-      sendCommand(F("AT+CIICR"));            
+      sendCommand(F("AT+CIICR"));        
     }
     break;
 
