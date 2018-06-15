@@ -408,17 +408,6 @@ void CoreSIM800Transport::sendCommand(const String& command, bool addNewLine)
   
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
-void CoreSIM800Transport::GetAPNUserPass(String& user, String& pass)
-{
-    user = APN_USER;
-    pass = APN_PASS;
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-String CoreSIM800Transport::GetAPN()
-{
-    return APN_ADDRESS;
-}
-//--------------------------------------------------------------------------------------------------------------------------------
 void CoreSIM800Transport::sendCommand(SIM800Commands command)
 {
   currentCommand = command;
@@ -479,17 +468,24 @@ void CoreSIM800Transport::sendCommand(SIM800Commands command)
     }
     break;
 
+    case smaCOPS:
+    {
+      #ifdef GSM_DEBUG_MODE
+      DBGLN(F("SIM800: Request operator name..."));
+      #endif
+
+      sendCommand(F("AT+COPS?"));
+    }
+    break;
+
     case smaCSTT:
     {
       #ifdef GSM_DEBUG_MODE
       DBGLN(F("SIM800: Setup GPRS connection..."));
       #endif
-
-      String apnUser, apnPass;
-      GetAPNUserPass(apnUser, apnPass);
       
       String comm = F("AT+CSTT=\"");
-      comm += GetAPN();
+      comm += apn;
       comm += F("\",\"");
       comm += apnUser;
       comm += F("\",\"");
@@ -1881,6 +1877,53 @@ void CoreSIM800Transport::update()
                   }
                   break; // smaCIFSR
 
+                  case smaCOPS:
+                  {
+                    if(isKnownAnswer(thisCommandLine,knownAnswer))
+                    {
+                      #ifdef GSM_DEBUG_MODE
+                              DBGLN(F("SIM800: COPS command processed."));
+                      #endif
+                      
+                      machineState = sim800Idle; // переходим к следующей команде
+                      
+                    }
+                    else
+                    {
+                       String opName = thisCommandLine;
+                       opName.toUpperCase();
+                       
+                       if(opName.startsWith(F("+COPS:")))
+                       {
+                              if (opName.indexOf(F("MTS")) > -1)
+                              {
+                                apn  = F("internet.mts.ru");
+                                apnUser = F("mts");
+                                apnPass  = F("mts");
+                              }
+                              else if (opName.indexOf(F("BEE")) > -1)
+                              {
+                                apn  = F("internet.beeline.ru");
+                                apnUser = F("beeline");
+                                apnPass  = F("beeline");
+                              }
+                              else if (opName.indexOf(F("MEGA")) > -1)
+                              {
+                                apn  = F("internet");
+                                apnUser = "gdata";
+                                apnPass  = "gdata";
+                              }                          
+                              else if (opName.indexOf(F("MOTIV")) > -1)
+                              {
+                                apn  = F("internet.tele2.ru");
+                                apnUser = "";
+                                apnPass  = "";
+                              }                          
+                       }
+                    }
+                  }
+                  break;
+
                   case smaCSTT:
                   {
                     if(isKnownAnswer(thisCommandLine,knownAnswer))
@@ -2442,13 +2485,9 @@ void CoreSIM800Transport::createInitCommands(bool addResetCommand)
   // очищаем очередь команд
   clearInitCommands();
 
-  // если указаны параметры APN - при старте поднимаем GPRS
-  String apn = GetAPN();
-  if(apn.length())
-  {
-    initCommandsQueue.push_back(smaCSTT);
-  }
 
+  initCommandsQueue.push_back(smaCSTT);
+  initCommandsQueue.push_back(smaCOPS);
   initCommandsQueue.push_back(smaCIPSHUT);
 
   initCommandsQueue.push_back(smaCIPMUX);

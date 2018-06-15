@@ -260,7 +260,8 @@ typedef enum
 #ifdef GSM_PULL_GPRS_BY_PING  
   smaPING,
 #endif
-  smaCIPSHUT  
+  smaCIPSHUT,
+  smaCOPS,  
 } SIM800Commands;
 //--------------------------------------------------------------------------------------------------------------------------------------
 typedef Vector<SIM800Commands> SIM800CommandsList;
@@ -341,6 +342,8 @@ class CoreSIM800Transport : public CoreTransport
 
       void restart();
 
+      String apn, apnUser, apnPass;
+
       Vector<String*> cusdList;
       void sendQueuedCUSD();
 
@@ -354,9 +357,6 @@ class CoreSIM800Transport : public CoreTransport
   
       CoreTransportClient* cipstartConnectClient;
       uint8_t cipstartConnectClientID;
-
-      void GetAPNUserPass(String& user, String& pass);
-      String GetAPN();
       
       bool checkIPD(const TransportReceiveBuffer& buff);
       void processCMT(const String& cmtInfo);
