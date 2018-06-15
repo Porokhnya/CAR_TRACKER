@@ -1053,6 +1053,20 @@ void CoreSIM800Transport::update()
   
   bool hasAnswer = receiveBuffer.size();
 
+//ПРОБЛЕМА: для TELE2 выдаёт НУЛИ модем, это НЕ СООТВЕТСТВУЕТ ДАТАШИТУ НА КОМАНДЫ !!!
+/*
+  if(currentCommand == smaCIICR)
+  {
+    if(receiveBuffer.size())
+    {
+      for(size_t i=0;i<receiveBuffer.size();i++)
+      {       
+        Serial.print(receiveBuffer[i],HEX); Serial.print(" ");
+      }
+      Serial.println();
+     }
+  }
+*/
   if(!hasAnswer)
   {
       // нет ответа от SIM800, проверяем, завис ли он?
