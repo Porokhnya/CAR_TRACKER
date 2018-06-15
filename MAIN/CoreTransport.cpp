@@ -449,7 +449,7 @@ void CoreSIM800Transport::sendCommand(SIM800Commands command)
       #ifdef GSM_DEBUG_MODE
       DBGLN(F("SIM800: Deactivate GPRS connection..."));
       #endif
-      sendCommand(F("AT+CIPSHUT"));      
+      sendCommand(F("AT+CIPSHUT"));
     }
     break;
 
@@ -2146,6 +2146,41 @@ void CoreSIM800Transport::update()
 
                   case smaWaitReg:
                   {
+                    if(isKnownAnswer(thisCommandLine,knownAnswer))
+                    {
+                      if(!flags.isModuleRegistered)
+                      {
+                            // ещё не зарегистрированы
+                            idleTime = GSM_CHECK_REGISTRATION_INTERVAL; // повторим через 5 секунд
+                            flags.onIdleTimer = true;
+                            idleTimer = millis();
+                            // добавляем ещё раз эту команду
+                            initCommandsQueue.push_back(smaWaitReg);
+                            machineState = sim800Idle;                        
+                      }
+                      else
+                      {
+                          // зарегистрировались, мигаем синим светодиодом
+                             currentDiodeMode = swBlue;
+                             sim800LedScenario.enable();
+                             
+                             machineState = sim800Idle;                        
+                      }
+                    }
+                    else
+                    {
+                      if(thisCommandLine.indexOf(F("+CREG:")) != -1)
+                      {
+                        if(thisCommandLine.indexOf(F("+CREG: 0,1")) != -1)
+                        {
+                              flags.isModuleRegistered = true;
+                             #ifdef GSM_DEBUG_MODE
+                              DBGLN(F("SIM800: Modem registered in GSM!"));
+                             #endif 
+                        }
+                      }
+                    }
+                    /*
                      if(thisCommandLine.indexOf(F("+CREG: 0,1")) != -1)
                         {
                           // зарегистрированы в GSM-сети
@@ -2171,7 +2206,8 @@ void CoreSIM800Transport::update()
                             // добавляем ещё раз эту команду
                             initCommandsQueue.push_back(smaWaitReg);
                             machineState = sim800Idle;
-                        } // else                    
+                        } // else
+                    */
                   }
                   break; // smaWaitReg
                   
@@ -2501,11 +2537,11 @@ void CoreSIM800Transport::createInitCommands(bool addResetCommand)
 
 
   initCommandsQueue.push_back(smaCSTT);
-  initCommandsQueue.push_back(smaCOPS);
   initCommandsQueue.push_back(smaCIPSHUT);
 
   initCommandsQueue.push_back(smaCIPMUX);
   initCommandsQueue.push_back(smaCIPMODE);
+  initCommandsQueue.push_back(smaCOPS);
   initCommandsQueue.push_back(smaWaitReg); // ждём регистрации
   
   initCommandsQueue.push_back(smaCIPHEAD);
