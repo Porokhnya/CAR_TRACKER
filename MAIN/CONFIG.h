@@ -66,22 +66,22 @@
 #define SIM800_POWERKEY_OFF_LEVEL HIGH // начальный уровень на выходе POWERKEY
 #define SIM800_POWERKEY_ON_LEVEL LOW // уровень, который держится нужное кол-во времени
 #define SIM800_WAIT_POWERKEY_AFTER_POWER_ON 1000 // сколько миллисекунд ждать после подачи питания до подачи импульса POWERKEY
-
-// Настройки индикации работы модема SIM800C трехцветным светодиодом
-//#define COMMON_ANODE                                  // Если светодиод с общим катодом - раскомментировать
-#define LED_RED      A1                                 // Индикация светодиодом RED
-#define LED_BLUE     A2                                 // Индикация светодиодом BLUE
-#define LED_GREEN    A3                                 // Индикация светодиодом GREEN
-
-#define COLOR_NONE LOW, LOW, LOW                        // Отключить все светодиоды
-#define COLOR_GREEN LOW, HIGH, LOW                      // Включить зеленый светодиод
-#define COLOR_BLUE LOW, LOW, HIGH                       // Включить синий светодиод
-#define COLOR_RED HIGH, LOW, LOW                        // Включить красный светодиод
-volatile int stateLed = LOW;                            // Состояние светодиода при прерывистой индикации на старте
-volatile int state_device = 0;                          // state_device = 0. Состояние модуля SIM800C при включении
-														// state_device = 1. Не зарегистрирован в сети, поиск
-														// state_device = 2. Зарегистрировано в сети
-														// state_device = 3. GPRS связь установлена
+//
+//// Настройки индикации работы модема SIM800C трехцветным светодиодом
+////#define COMMON_ANODE                                  // Если светодиод с общим катодом - раскомментировать
+//#define LED_RED      A1                                 // Индикация светодиодом RED
+//#define LED_BLUE     A2                                 // Индикация светодиодом BLUE
+//#define LED_GREEN    A3                                 // Индикация светодиодом GREEN
+//
+//#define COLOR_NONE LOW, LOW, LOW                        // Отключить все светодиоды
+//#define COLOR_GREEN LOW, HIGH, LOW                      // Включить зеленый светодиод
+//#define COLOR_BLUE LOW, LOW, HIGH                       // Включить синий светодиод
+//#define COLOR_RED HIGH, LOW, LOW                        // Включить красный светодиод
+//volatile int stateLed = LOW;                            // Состояние светодиода при прерывистой индикации на старте
+//volatile int state_device = 0;                          // state_device = 0. Состояние модуля SIM800C при включении
+//														// state_device = 1. Не зарегистрирован в сети, поиск
+//														// state_device = 2. Зарегистрировано в сети
+//														// state_device = 3. GPRS связь установлена
 /*
 // Подпрограмма управления трехцветным светодиодом. !!Удалить после перемещения в основную программу.
  void setColor(bool red, bool green, bool blue)        // Включение цвета свечения трехцветного светодиода.

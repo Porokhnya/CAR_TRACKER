@@ -6,3 +6,10 @@
 /MAIN/Release
 /MAIN/Libraries/SparkFunMPU9250_DMP
 /MAIN/Libraries/Parser_Ublox_Neo_M8N
+/MAIN/Libraries/ArduinoDueRTCLibrary
+/MAIN/Libraries/DueTimer
+/MAIN/Libraries/OneWire
+/MAIN/Libraries/SdFat
+/MAIN/Libraries/SdFatTestSuite
+/MAIN/Libraries/SIM800
+/MAIN/Libraries/SparkFun_MPU9250_DMP
