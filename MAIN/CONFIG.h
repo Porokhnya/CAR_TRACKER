@@ -65,9 +65,9 @@
 
 // Настройки индикации работы модема SIM800C трехцветным светодиодом
 //#define COMMON_ANODE                                  // Если светодиод с общим катодом - раскомментировать
-#define LED_RED      A1                                 // Индикация светодиодом RED
-#define LED_BLUE     A2                                 // Индикация светодиодом BLUE
-#define LED_GREEN    A3                                 // Индикация светодиодом GREEN
+#define LED_RED      A0                                 // Индикация светодиодом RED
+#define LED_BLUE     A1                                 // Индикация светодиодом BLUE
+#define LED_GREEN    A2                                 // Индикация светодиодом GREEN
 
 #define COLOR_NONE LOW, LOW, LOW                        // Отключить все светодиоды
 #define COLOR_GREEN LOW, HIGH, LOW                      // Включить зеленый светодиод

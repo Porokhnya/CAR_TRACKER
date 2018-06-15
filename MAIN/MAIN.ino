@@ -11,6 +11,21 @@ int ledState = LOW;             // ledState used to set the LED
 // Altitude - Latitude - Longitude - N Satellites
 float gpsArray[] = {0, 0, 0, 0};
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void setColor(bool red, bool green, bool blue)        // Включение цвета свечения трехцветного светодиода.
+{
+#ifdef COMMON_ANODE                              // Если светодиод с общим катодом
+	red = !red;
+	green = !green;
+	blue = !blue;
+#endif 
+	digitalWrite(LED_RED, red);
+	digitalWrite(LED_GREEN, green);
+	digitalWrite(LED_BLUE, blue);
+}
+
+
+
 void setup() 
 {
 
@@ -23,8 +38,9 @@ void setup()
 
   DBGLN(F("Setup GPS..."));  
   GPS_SERIAL.begin(GPS_BAUD);
-  
-
+ 
+  setColor(COLOR_NONE);
+ 
   // Call imu.begin() to verify communication with and
   // initialize the MPU-9250 to it's default values.
   // Most functions return an error code - INV_SUCCESS (0)
@@ -84,6 +100,13 @@ void setup()
   Serial.print(" ");
   Serial.println(timeString);
 
+  setColor(COLOR_RED);
+  delay(500);
+  setColor(COLOR_BLUE);
+  delay(500);
+  setColor(COLOR_GREEN);
+  delay(500);
+  setColor(COLOR_NONE);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void printIMUData(void)
