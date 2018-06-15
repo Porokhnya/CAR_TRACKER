@@ -1,6 +1,55 @@
 #include "CoreTransport.h"
 #include "HexUtils.h"
 //--------------------------------------------------------------------------------------------------------------------------------------
+void SIM800_setDiodeColor(bool red, bool green, bool blue)        // Включение цвета свечения трехцветного светодиода.
+{
+  #ifdef COMMON_ANODE                              // Если светодиод с общим катодом
+  red = !red;
+  green = !green;
+  blue = !blue;
+  #endif 
+  digitalWrite(LED_RED, red);
+  digitalWrite(LED_GREEN, green);
+  digitalWrite(LED_BLUE, blue);    
+}
+//-------------------------------------------------------------------------------------------------------------------------------------- 
+CoreScenario sim800LedScenario;
+//-------------------------------------------------------------------------------------------------------------------------------------- 
+typedef enum
+{
+  swRed,
+  swGreen,
+  swBlue
+  
+} SimDiodeSwitch;
+//--------------------------------------------------------------------------------------------------------------------------------------
+SimDiodeSwitch currentDiodeMode = swRed;
+//-------------------------------------------------------------------------------------------------------------------------------------- 
+void SIM800LedOn(void* param)
+{
+  DBGLN(F("LED ON!"));
+  switch(currentDiodeMode)
+  {
+    case swRed:
+      SIM800_setDiodeColor(COLOR_RED);
+    break; 
+    
+    case swGreen:
+      SIM800_setDiodeColor(COLOR_GREEN);
+    break; 
+    
+    case swBlue:
+      SIM800_setDiodeColor(COLOR_BLUE);
+    break; 
+  }
+}
+//-------------------------------------------------------------------------------------------------------------------------------------- 
+void SIM800LedOff(void* param)
+{
+  DBGLN(F("LED OFF!"));
+  SIM800_setDiodeColor(COLOR_NONE);
+}
+//-------------------------------------------------------------------------------------------------------------------------------------- 
 // CoreTransportClient
 //--------------------------------------------------------------------------------------------------------------------------------------
 CoreTransportClient::CoreTransportClient()
@@ -393,7 +442,7 @@ void CoreSIM800Transport::sendCommand(SIM800Commands command)
       #ifdef GSM_DEBUG_MODE
       DBGLN(F("SIM800: Check for modem READY..."));
       #endif
-      sendCommand(F("AT+CPAS"));
+      sendCommand(F("AT+CPAS"));      
     }
     break;
 
@@ -448,6 +497,10 @@ void CoreSIM800Transport::sendCommand(SIM800Commands command)
       comm += F("\"");
 
       sendCommand(comm);
+
+      // начинаем мигать зелёным светодиодом
+      currentDiodeMode = swGreen;
+      sim800LedScenario.enable();
     }
     break;
 
@@ -943,13 +996,28 @@ void CoreSIM800Transport::dumpReceiveBuffer()
 //--------------------------------------------------------------------------------------------------------------------------------------
 void CoreSIM800Transport::rebootModem()
 {
-    #ifdef USE_GSM_REBOOT_PIN
-      // есть пин, который надо использовать при зависании
-      digitalWrite(GSM_REBOOT_PIN,GSM_POWER_OFF);
-    #endif
+  digitalWrite(SIM800_GATE_KEY,SIM800_GATE_OFF);
 
-    machineState = sim800Reboot;
-    timer = millis();
+  #ifdef USE_GSM_REBOOT_PIN
+  
+    #ifdef GSM_DEBUG_MODE
+      DBGLN(F("SIM800: power OFF!"));
+    #endif
+    // есть пин, который надо использовать при зависании
+    pinMode(GSM_REBOOT_PIN,OUTPUT);
+    digitalWrite(GSM_REBOOT_PIN,GSM_POWER_OFF);
+    
+  #endif
+
+  #ifdef USE_SIM800_POWERKEY
+      digitalWrite(SIM800_POWERKEY_PIN, SIM800_POWERKEY_OFF_LEVEL);
+  #endif
+
+   sim800LedScenario.disable();
+  // выключаем диод
+  SIM800_setDiodeColor(COLOR_NONE);
+  machineState = sim800Reboot;
+  timer = millis();
   
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -958,6 +1026,8 @@ void CoreSIM800Transport::update()
 
   if(!workStream) // нет рабочего потока
     return;
+
+  sim800LedScenario.update();
 
   if(flags.onIdleTimer) // попросили подождать определённое время, в течение которого просто ничего не надо делать
   {
@@ -1695,6 +1765,7 @@ void CoreSIM800Transport::update()
                         DBGLN(F("SIM800: CIPHEAD command processed."));
                       #endif
                       machineState = sim800Idle; // переходим к следующей команде
+
                     }
                   }
                   break; // smaCIPHEAD
@@ -1770,6 +1841,11 @@ void CoreSIM800Transport::update()
                           // всё, исчерпали лимит на попытки получить IP-адрес
                           machineState = sim800Idle; // переходим к следующей команде
                           flags.gprsAvailable = false;
+
+                          // выключаем мигалку
+                          sim800LedScenario.disable();
+                          //TODO: ТУТ НЕПОНЯТНО, КАКИМ ЦВЕТОМ МИГАТЬ, ЕСЛИ НЕ УДАЛОСЬ ЗАКОННЕКТИТЬСЯ К ИНТЕРНЕТУ!!!
+                          
                         }
                       }
                       else
@@ -1779,6 +1855,11 @@ void CoreSIM800Transport::update()
                         #endif
                         flags.gprsAvailable = false;
                         machineState = sim800Idle; // переходим к следующей команде
+                        
+                        // выключаем мигалку
+                        sim800LedScenario.disable();
+                        //TODO: ТУТ НЕПОНЯТНО, КАКИМ ЦВЕТОМ МИГАТЬ, ЕСЛИ НЕ УДАЛОСЬ ЗАКОННЕКТИТЬСЯ К ИНТЕРНЕТУ!!!
+
                       }
                     } // isKnownAnswer
                     else
@@ -1790,7 +1871,12 @@ void CoreSIM800Transport::update()
                       #endif
                       
                       flags.gprsAvailable = true;
-                      machineState = sim800Idle; // переходим к следующей команде          
+                      machineState = sim800Idle; // переходим к следующей команде
+
+                      // выключаем мигалку
+                      sim800LedScenario.disable();
+                      // и зажигаем зелёный светодиод
+                      SIM800_setDiodeColor(COLOR_GREEN);
                     }
                   }
                   break; // smaCIFSR
@@ -1864,6 +1950,13 @@ void CoreSIM800Transport::update()
                         #endif
                       }
                       machineState = sim800Idle; // переходим к следующей команде
+                      // после этой команды будет ожидание регистрации в сети
+                      // будем мигать красным светодиодом
+                      SIM800_setDiodeColor(COLOR_NONE);
+                      currentDiodeMode = swRed;
+                      sim800LedScenario.enable();
+
+                      
                     }
                   }
                   break; // smaEchoOff
@@ -2003,6 +2096,12 @@ void CoreSIM800Transport::update()
                              #ifdef GSM_DEBUG_MODE
                               DBGLN(F("SIM800: Modem registered in GSM!"));
                              #endif
+
+
+                             // зарегистрировались, мигаем синим светодиодом
+                             currentDiodeMode = swBlue;
+                             sim800LedScenario.enable();
+                             
                              machineState = sim800Idle;
                         } // if
                         else
@@ -2176,6 +2275,10 @@ void CoreSIM800Transport::update()
                 delay(100);
               }
 
+              // зажигаем красный светодиод
+              SIM800_setDiodeColor(COLOR_RED);
+              
+
                 #ifdef GSM_DEBUG_MODE
                       DBGLN(F("SIM800: power ON completed."));
                 #endif                 
@@ -2228,6 +2331,19 @@ void CoreSIM800Transport::begin()
   #ifdef GSM_DEBUG_MODE
    DBGLN(F("SIM800: begin."));
   #endif
+
+  sim800LedScenario.disable();
+  
+  CoreAction actionON;
+  actionON.duration = 300000;
+  actionON.onAction = SIM800LedOn;
+  sim800LedScenario.add(actionON);
+
+  CoreAction actionOFF;
+  actionOFF.duration = 300000;
+  actionOFF.onAction = SIM800LedOff;
+  sim800LedScenario.add(actionOFF);
+
     
   workStream = &GSM_SERIAL;
   GSM_SERIAL.begin(GSM_BAUD_RATE, SERIAL_8N1);
@@ -2235,25 +2351,12 @@ void CoreSIM800Transport::begin()
 
   pinMode(SIM800_STATUS_PIN,INPUT);
   pinMode(SIM800_GATE_KEY,OUTPUT);
-  digitalWrite(SIM800_GATE_KEY,SIM800_GATE_OFF);
-
-  #ifdef USE_GSM_REBOOT_PIN
-  
-    #ifdef GSM_DEBUG_MODE
-      DBGLN(F("SIM800: power OFF!"));
-    #endif
-    // есть пин, который надо использовать при зависании
-    pinMode(GSM_REBOOT_PIN,OUTPUT);
-    digitalWrite(GSM_REBOOT_PIN,GSM_POWER_OFF);
-  #endif
 
   #ifdef USE_SIM800_POWERKEY
       pinMode(SIM800_POWERKEY_PIN,OUTPUT);
-      digitalWrite(SIM800_POWERKEY_PIN, SIM800_POWERKEY_OFF_LEVEL);
   #endif
   
-  machineState = sim800Reboot;
-
+  rebootModem();
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 void CoreSIM800Transport::sendCUSD(const String& cusd)
@@ -2325,6 +2428,10 @@ void CoreSIM800Transport::restart()
 
   // инициализируем очередь командами по умолчанию
  createInitCommands(true);
+
+
+ sim800LedScenario.disable();
+ SIM800_setDiodeColor(COLOR_NONE);
   
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
