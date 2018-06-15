@@ -2,6 +2,7 @@
 //--------------------------------------------------------------------------------------------------------------------------------
 #include <Arduino.h>
 #include "CONFIG.h"
+#include "CoreScenario.h"
 //--------------------------------------------------------------------------------------------------------------------------------
 // максимальная длина одного пакета к вычитке прежде, чем подписчику придёт уведомление о пакете данных
 #define TRANSPORT_MAX_PACKET_LENGTH 128
@@ -323,7 +324,7 @@ class CoreSIM800Transport : public CoreTransport
     bool sendSMS(const String& phoneNumber, const String& message, bool isFlash);
     void sendCUSD(const String& cusd);
 
-    void restart();
+    void rebootModem();
     void readFromStream();
 
     #ifdef GSM_DEBUG_MODE
@@ -338,7 +339,7 @@ class CoreSIM800Transport : public CoreTransport
 
   private:
 
-      void rebootModem();
+      void restart();
 
       Vector<String*> cusdList;
       void sendQueuedCUSD();
