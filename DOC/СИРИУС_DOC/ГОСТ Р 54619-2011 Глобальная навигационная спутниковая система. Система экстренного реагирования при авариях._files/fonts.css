@@ -1,0 +1,35 @@
+@font-face {
+    font-family: 'MyriadProRegular';
+    src: url('myriadpro-regular.eot');
+    src: url('myriadpro-regular.eot') format('embedded-opentype'),
+         url('myriadpro-regular.woff') format('woff'),
+         url('myriadpro-regular.ttf') format('truetype'),
+         url('myriadpro-regular.svg#MyriadProRegular') format('svg');
+}
+@font-face {
+    font-family: 'MyriadPro-Light';
+    src: url('MyriadPro-Light.eot?') format('eot'),
+         url('MyriadPro-Light.otf')  format('opentype'),
+         url('MyriadPro-Light.woff') format('woff'),
+         url('MyriadPro-Light.ttf')  format('truetype'),
+         url('MyriadPro-Light.svg#MyriadPro-Light') format('svg');
+}
+@font-face {
+    font-family: 'MyriadPro-Semibold';
+    src: url('MyriadPro-Semibold.eot?') format('eot'),
+         url('MyriadPro-Semibold.otf')  format('opentype'),
+         url('MyriadPro-Semibold.woff') format('woff'),
+         url('MyriadPro-Semibold.ttf')  format('truetype'),
+         url('MyriadPro-Semibold.svg#MyriadPro-Semibold') format('svg');
+}
+@font-face {
+    font-family: 'helveticaneuecyrroman';
+    src: url('helveticaneuecyr-roman-webfont.eot');
+    src: url('helveticaneuecyr-roman-webfont.eot?#iefix') format('embedded-opentype'),
+         url('helveticaneuecyr-roman-webfont.woff2') format('woff2'),
+         url('helveticaneuecyr-roman-webfont.woff') format('woff'),
+         url('helveticaneuecyr-roman-webfont.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+
+}
