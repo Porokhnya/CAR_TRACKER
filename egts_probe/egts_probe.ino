@@ -6,9 +6,11 @@
 template <typename T> inline Stream& operator << (Stream &s, T n) { s.print(n); return s; }
 #define ENDLINE "\r\n"
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+#define BUFFER_SIZE 1024
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 egts_state_t  estate_rx;
 egts_state_t  estate_tx;
-u8    temp_buf[ 65536 ];
+u8    temp_buf[ BUFFER_SIZE ];
 egts_probe_ctx_t       probes_ctx;
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 int  estate_tx_buffer_loop( void* ctx , void* pbuf , u32 sz ) 
@@ -50,7 +52,7 @@ void  estate_rx_error( void* actx , u16 PID , u8 err , const char* dgb_str )
 void egts_probe_printf( const char* fmt , ... )
 {
   /*
-  va_list v;
+  va_list valist;
   va_start(v,fmt);
   vprintf( fmt , v );
   */
@@ -123,7 +125,7 @@ void setup()
         *pfn_probe_send;
         pfn_probe_send++ )
   {
-    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, NULL , temp_buf , 65535 );
+    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, NULL , temp_buf , ((BUFFER_SIZE)-1) );
     PID++;
   }
 
@@ -140,7 +142,7 @@ void setup()
         *pfn_probe_send;
         pfn_probe_send++ )
   {
-    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, &responce , temp_buf , 65535 );
+    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, &responce , temp_buf , ((BUFFER_SIZE)-1) );
     PID++;
   }
 
@@ -159,7 +161,7 @@ void setup()
         *pfn_probe_send;
         pfn_probe_send++ )
   {
-    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, NULL , temp_buf , 65535 );
+    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, NULL , temp_buf , ((BUFFER_SIZE)-1) );
     PID++;
   }
 
@@ -178,7 +180,7 @@ void setup()
         *pfn_probe_send;
         pfn_probe_send++ )
   {
-    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, &responce , temp_buf , 65535 );
+    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, &responce , temp_buf , ((BUFFER_SIZE)-1) );
     PID++;
   }
 
@@ -199,7 +201,7 @@ void setup()
         *pfn_probe_send;
         pfn_probe_send++ )
   {
-    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, NULL , temp_buf , 65535 );
+    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, NULL , temp_buf , ((BUFFER_SIZE)-1) );
     PID++;
   }
 
@@ -218,7 +220,7 @@ void setup()
         *pfn_probe_send;
         pfn_probe_send++ )
   {
-    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, &responce ,  temp_buf , 65535 );
+    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, &responce ,  temp_buf , ((BUFFER_SIZE)-1) );
     PID++;
   }
 
@@ -238,7 +240,7 @@ void setup()
         *pfn_probe_send;
         pfn_probe_send++ )
   {
-    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, NULL , temp_buf , 65535 );
+    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, NULL , temp_buf , ((BUFFER_SIZE)-1) );
     PID++;
   }
 
@@ -257,7 +259,7 @@ void setup()
         *pfn_probe_send;
         pfn_probe_send++ )
   {
-    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, &responce , temp_buf , 65535 );
+    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, &responce , temp_buf , ((BUFFER_SIZE)-1) );
     PID++;
   }
 
@@ -278,7 +280,7 @@ void setup()
         *pfn_probe_send;
         pfn_probe_send++ )
   {
-    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, NULL , temp_buf , 65535 );
+    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, NULL , temp_buf , ((BUFFER_SIZE)-1) );
     PID++;
   }
 
@@ -298,7 +300,7 @@ void setup()
         *pfn_probe_send;
         pfn_probe_send++ )
   {
-    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, NULL , temp_buf , 65535 );
+    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, NULL , temp_buf , ((BUFFER_SIZE)-1) );
     PID++;
   }
 
@@ -317,7 +319,7 @@ void setup()
         *pfn_probe_send;
         pfn_probe_send++ )
   {
-    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, NULL , temp_buf , 65535 );
+    (*pfn_probe_send)( &estate_tx , &def_profile , def_priority , NULL , PID, NULL , temp_buf , ((BUFFER_SIZE)-1) );
     PID++;
   }
 
