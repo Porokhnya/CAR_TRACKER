@@ -15,3 +15,10 @@
 /MAIN/Libraries/SparkFun_MPU9250_DMP
 /egts_probe/Libraries/egts
 /DOC/egts
+/DOC/glonassd-master
+/EGTS_Test_01/.vs
+/EGTS_Test_01/__vm
+/EGTS_Test_01/Release
+/EGTS_Test_01/EGTS_Test_01.sln
+/EGTS_Test_01/EGTS_Test_01.vcxproj
+/EGTS_Test_01/EGTS_Test_01.vcxproj.filters
