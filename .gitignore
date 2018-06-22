@@ -13,3 +13,5 @@
 /MAIN/Libraries/SdFatTestSuite
 /MAIN/Libraries/SIM800
 /MAIN/Libraries/SparkFun_MPU9250_DMP
+/egts_probe/Libraries/egts
+/DOC/egts
