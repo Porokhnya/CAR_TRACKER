@@ -25,13 +25,13 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#include "egts/include/egts_config.h"
-#include "egts/include/egts.h"
-#include "egts/include/egts_impl.h"
-#include "egts/transport/egts_guts.h"
+#include <egts_config.h>
+#include <egts.h>
+#include <egts_impl.h>
+#include <egts_guts.h>
 
 #include "egts_probe.h"
-#include "egts/services/egts_services.h"
+#include <egts_services.h>
 
 /******************************************************************************
 * prototypes

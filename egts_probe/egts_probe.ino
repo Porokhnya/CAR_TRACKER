@@ -1,6 +1,6 @@
-#include "egts/include/egts_config.h"
-#include "egts/include/egts.h"
-#include "egts/include/egts_impl.h"
+#include <egts_config.h>
+#include <egts.h>
+#include <egts_impl.h>
 #include "egts_probe.h"
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 template <typename T> inline Stream& operator << (Stream &s, T n) { s.print(n); return s; }

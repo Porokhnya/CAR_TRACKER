@@ -1,6 +1,6 @@
 /*****************************************************************************/
 /*                                                                           */
-/* File: probe_commands.c                                                    */
+/* File: probe_filrmware.c                                                   */
 /*                                                                           */
 /* System: ERA GLONASS terminal communication protocol reference impl.       */
 /*                                                                           */
@@ -10,46 +10,48 @@
 /*                                                                           */
 /* Language: C                                                               */
 /*                                                                           */
-/* (c) Copyright JSC «Navigation-information systems», 2011                  */
+/* (c) Copyright JSC ï¿½Navigation-information systemsï¿½, 2011                  */
 /*                                                                           */
 /* Address:                                                                  */
 /*     24, Mishina Str., bld.1                                               */
 /*     Moscow, Russia                                                        */
 /*                                                                           */
-/* Description: Test routines for COMMANDS service                           */
+/* Description: Test routines for FIRMWARE service                           */
 /*                                                                           */
 /* Additional information: -                                                 */
 /*                                                                           */
-/* Functions: send_test_COMMANDS_COMMAND_DATA_conf                           */
-/*            send_test_COMMANDS_COMMAND_DATA_confx                          */
-/*            send_test_COMMANDS_COMMAND_DATA_cmd                            */
-/*            send_test_COMMANDS_COMMAND_DATA_cmdx                           */
+/* Functions: send_test_FIRMWARE_PART_DATA_1                                 */
+/*            send_test_FIRMWARE_PART_DATA_2                                 */
+/*            send_test_FIRMWARE_PART_DATA_1x                                */
+/*            send_test_FIRMWARE_PART_DATA_2x                                */
+/*            send_test_FIRMWARE_FULL_DATA                                   */
+/*            send_test_FIRMWARE_FULL_DATA_x                                 */
 /*                                                                           */
 /*****************************************************************************/
 
-#include "../egts/include/egts_config.h"
-#include "../egts/include/egts.h"
-#include "../egts/include/egts_impl.h"
+#include <egts_config.h>
+#include <egts.h>
+#include <egts_impl.h>
 
 /******************************************************************************
 *
 */
 
-#include "../egts_probe.h"
-#include "probe_commands.h"
+#include "egts_probe.h"
+#include "probe_firmware.h"
 
 /******************************************************************************
 *
 */
 
 /*for probes only */
-u8 egts_commands_tx_buf[ EGTS_COMMAND_MAX_DT ];
+u8 egts_firmware_tx_buf[ EGTS_FIRMWARE_MAX_DATA ];
 
 /*****************************************************************************/
 /*                                                                           */
-/* send_test_COMMANDS_COMMAND_DATA_conf()                                    */
+/* send_test_FIRMWARE_PART_DATA_1()                                          */
 /*                                                                           */
-/* Description: Test function for COMMANDS_COMMAND_DATA packet               */
+/* Description: Test function for FIRMWARE_PART_DATA packet                  */
 /*                                                                           */
 /* Arguments: estate - protocol instance                                     */
 /*            pprofile - transmit settings                                   */
@@ -66,7 +68,7 @@ u8 egts_commands_tx_buf[ EGTS_COMMAND_MAX_DT ];
 /*                                                                           */
 /*****************************************************************************/
 
-void send_test_COMMANDS_COMMAND_DATA_conf(
+void send_test_FIRMWARE_PART_DATA_1(
   egts_state_t*   estate ,
   egts_profile_t* pprofile ,
   u8              PR , 
@@ -77,13 +79,12 @@ void send_test_COMMANDS_COMMAND_DATA_conf(
   u16             temp_buf_sz
   )
 {
-
-  u8  dt[ 64 ];
-
   egts_record_t               record;
   egts_subrecord_t            subrecord;
 
-  egts_COMMANDS_COMMAND_DATA_t   sr;
+  u8  test_buf[64];
+
+  egts_FIRMWARE_PART_DATA_t   sr;
 
   record.record.RL   = 0;  /* calculated automaticaly */
   record.record.RN   = 1;
@@ -94,41 +95,38 @@ void send_test_COMMANDS_COMMAND_DATA_conf(
   record.record.TMFE = 0;   record.record.TM   = 0;
   record.record.EVFE = 0;   record.record.EVID = 0;
   record.record.OBFE = 0;   record.record.OID  = 0;
-  record.record.SST  = EGTS_COMMANDS_SERVICE;
-  record.record.RST  = EGTS_COMMANDS_SERVICE;
+  record.record.SST  = EGTS_FIRMWARE_SERVICE;
+  record.record.RST  = EGTS_FIRMWARE_SERVICE;
 
-   /**************************************
+  /**************************************
   *
   */
 
-  sr.CT    = CT_COMCONF;
-  sr.CCT   = CC_OK;
-  sr.CID   = 1;
-  sr.SID   = 1;
+  sr.ID    = 12345;
+  sr.PN    = 1;
+  sr.EPQ   = 1;
 
-  sr.CHSFE = 1;
-  sr.CHS   = CHS_CP_1251;
+  sr.header.OT   = OT_FIRMWARE;
+  sr.header.MT   = MT_AUX;
 
-  sr.ACFE  = 1;
-  memset( sr.AC , 0 , sizeof(sr.AC) );
-  strcpy( (char*)sr.AC , "0123456789" );
-  sr.ACL   = 10;
+  sr.header.CMI  = 123;
+  sr.header.VER  = 1;
+  sr.header.WOS  = 12346;
+  sr.header.FN_len = 10;
 
-  sr.DT = dt;
-  memset( sr.DT , 0 , 64 );
-  strcpy( (char*)sr.DT , "0123456789" );
-  sr.DT_len = 10;
+  memset( sr.header.FN , 0 , sizeof(sr.header.FN) );
+  strcpy( (char*)sr.header.FN , "abcdeabcde" );
 
-  /* CONF */
-  sr.conf.ADR = 12345;
-  sr.conf.CCD = 12345;
+  sr.OD_len = 64;
+  sr.OD = test_buf;
+  memset( test_buf , 0xFF , 64 );
 
   /**************************************
   *
   */
 
   /* subrec.subrecord.SRL - auto */
-  subrecord.subrecord.SRT = EGTS_SR_COMMAND_DATA;
+  subrecord.subrecord.SRT = EGTS_SR_SERVICE_PART_DATA;
   subrecord.SRD           = (void*)&sr;
   record.psubrecords = &subrecord;
   record.nsubrecords = 1;
@@ -137,7 +135,7 @@ void send_test_COMMANDS_COMMAND_DATA_conf(
   probes_ctx.precords = &record;
   probes_ctx.nrecords = 1;
   probes_ctx.last_result = 0;
-  egts_probe_printf("COMMANDS.EGTS_SR_COMMAND_DATA (simple COMCONF) ... ");
+  egts_probe_printf("FIRMWARE.EGTS_SR_SERVICE_PART_DATA (simple, 64b, first) ... ");
   egts_reset_errors( estate );
   egts_tx_packet( estate , pprofile , PR , proute , PID, presponce ,
     &record , 1 ,
@@ -153,9 +151,9 @@ void send_test_COMMANDS_COMMAND_DATA_conf(
 
 /*****************************************************************************/
 /*                                                                           */
-/* send_test_COMMANDS_COMMAND_DATA_confx()                                   */
+/* send_test_FIRMWARE_PART_DATA_2()                                          */
 /*                                                                           */
-/* Description: Test function for COMMANDS_COMMAND_DATA packet               */
+/* Description: Test function for FIRMWARE_PART_DATA packet                  */
 /*                                                                           */
 /* Arguments: estate - protocol instance                                     */
 /*            pprofile - transmit settings                                   */
@@ -172,7 +170,7 @@ void send_test_COMMANDS_COMMAND_DATA_conf(
 /*                                                                           */
 /*****************************************************************************/
 
-void send_test_COMMANDS_COMMAND_DATA_confx(
+void send_test_FIRMWARE_PART_DATA_2(
   egts_state_t*   estate ,
   egts_profile_t* pprofile ,
   u8              PR , 
@@ -183,12 +181,12 @@ void send_test_COMMANDS_COMMAND_DATA_confx(
   u16             temp_buf_sz
   )
 {
-
-
   egts_record_t               record;
   egts_subrecord_t            subrecord;
 
-  egts_COMMANDS_COMMAND_DATA_t   sr;
+  u8  test_buf[64];
+
+  egts_FIRMWARE_PART_DATA_t   sr;
 
   record.record.RL   = 0;  /* calculated automaticaly */
   record.record.RN   = 1;
@@ -200,40 +198,27 @@ void send_test_COMMANDS_COMMAND_DATA_confx(
   record.record.TM   = egts_set_tm( 1, 2, 3, 4, 5, 2011 );
   record.record.EVFE = 0;   record.record.EVID = 0;
   record.record.OBFE = 0;   record.record.OID  = 0;
-  record.record.SST  = EGTS_COMMANDS_SERVICE;
-  record.record.RST  = EGTS_COMMANDS_SERVICE;
+  record.record.SST  = EGTS_FIRMWARE_SERVICE;
+  record.record.RST  = EGTS_FIRMWARE_SERVICE;
 
   /**************************************
   *
   */
 
-  sr.CT    = CT_COMCONF;
-  sr.CCT   = CC_OK;
-  sr.CID   = 1;
-  sr.SID   = 1;
+  sr.ID    = 12345;
+  sr.PN    = 2;
+  sr.EPQ   = 2;
 
-  sr.CHSFE = 1;
-  sr.CHS   = CHS_CP_1251;
-
-  sr.ACFE  = 1;
-  memset( sr.AC , 0 , sizeof(sr.AC) );
-  strcpy( (char*)sr.AC , "0123456789" );
-  sr.ACL   = 10;
-
-  sr.DT = egts_commands_tx_buf;
-  memset( sr.DT , '0' , sizeof( EGTS_COMMAND_MAX_DT ) );
-  sr.DT_len = EGTS_COMMAND_MAX_DT;
-
-  /* CONF */
-  sr.conf.ADR = 12345;
-  sr.conf.CCD = 12345;
+  sr.OD_len = 64;
+  sr.OD = test_buf;
+  memset( test_buf , 0xFF , 64 );
 
   /**************************************
   *
   */
 
   /* subrec.subrecord.SRL - auto */
-  subrecord.subrecord.SRT = EGTS_SR_COMMAND_DATA;
+  subrecord.subrecord.SRT = EGTS_SR_SERVICE_PART_DATA;
   subrecord.SRD           = (void*)&sr;
   record.psubrecords = &subrecord;
   record.nsubrecords = 1;
@@ -242,7 +227,7 @@ void send_test_COMMANDS_COMMAND_DATA_confx(
   probes_ctx.precords = &record;
   probes_ctx.nrecords = 1;
   probes_ctx.last_result = 0;
-  egts_probe_printf("COMMANDS.EGTS_SR_COMMAND_DATA (COMCONF, max length) ... ");
+  egts_probe_printf("FIRMWARE.EGTS_SR_SERVICE_PART_DATA (simple, 64b, second) ... ");
   egts_reset_errors( estate );
   egts_tx_packet( estate , pprofile , PR , proute , PID, presponce ,
     &record , 1 ,
@@ -253,14 +238,13 @@ void send_test_COMMANDS_COMMAND_DATA_confx(
   probes_ctx.precords = NULL;
   probes_ctx.nrecords = 0;
   probes_ctx.last_result = 0;
-
 }
 
 /*****************************************************************************/
 /*                                                                           */
-/* send_test_COMMANDS_COMMAND_DATA_cmd()                                     */
+/* send_test_FIRMWARE_PART_DATA_1x()                                         */
 /*                                                                           */
-/* Description: Test function for COMMANDS_COMMAND_DATA packet               */
+/* Description: Test function for FIRMWARE_PART_DATA packet                  */
 /*                                                                           */
 /* Arguments: estate - protocol instance                                     */
 /*            pprofile - transmit settings                                   */
@@ -277,7 +261,7 @@ void send_test_COMMANDS_COMMAND_DATA_confx(
 /*                                                                           */
 /*****************************************************************************/
 
-void send_test_COMMANDS_COMMAND_DATA_cmd(
+void send_test_FIRMWARE_PART_DATA_1x(
   egts_state_t*   estate ,
   egts_profile_t* pprofile ,
   u8              PR , 
@@ -288,13 +272,10 @@ void send_test_COMMANDS_COMMAND_DATA_cmd(
   u16             temp_buf_sz
   )
 {
-
-  u8  dt[ 64 ];
-
   egts_record_t               record;
   egts_subrecord_t            subrecord;
 
-  egts_COMMANDS_COMMAND_DATA_t   sr;
+  egts_FIRMWARE_PART_DATA_t   sr;
 
   record.record.RL   = 0;  /* calculated automaticaly */
   record.record.RN   = 1;
@@ -305,43 +286,38 @@ void send_test_COMMANDS_COMMAND_DATA_cmd(
   record.record.TMFE = 0;   record.record.TM   = 0;
   record.record.EVFE = 0;   record.record.EVID = 0;
   record.record.OBFE = 0;   record.record.OID  = 0;
-  record.record.SST  = EGTS_COMMANDS_SERVICE;
-  record.record.RST  = EGTS_COMMANDS_SERVICE;
+  record.record.SST  = EGTS_FIRMWARE_SERVICE;
+  record.record.RST  = EGTS_FIRMWARE_SERVICE;
 
   /**************************************
   *
   */
 
-  sr.CT    = CT_COM;
-  sr.CCT   = CC_OK;
-  sr.CID   = 1;
-  sr.SID   = 1;
+  sr.ID    = 12345;
+  sr.PN    = 1;
+  sr.EPQ   = 1;
 
-  sr.CHSFE = 1;
-  sr.CHS   = CHS_CP_1251;
+  sr.header.OT   = OT_FIRMWARE;
+  sr.header.MT   = MT_AUX;
 
-  sr.ACFE  = 1;
-  memset( sr.AC , 0 , sizeof(sr.AC) );
-  strcpy( (char*)sr.AC , "0123456789" );
-  sr.ACL   = 10;
+  sr.header.CMI  = 123;
+  sr.header.VER  = 1;
+  sr.header.WOS  = 12346;
+  sr.header.FN_len = 10;
 
-  sr.DT = dt;
-  memset( sr.DT , 0 , 64 );
-  strcpy( (char*)sr.DT , "0123456789" );
-  sr.DT_len = 10;
+  memset( sr.header.FN , 0 , sizeof(sr.header.FN) );
+  strcpy( (char*)sr.header.FN , "abcdeabcde" );
 
-  /* COM */
-  sr.command.ADR = 12345;
-  sr.command.SZ  = 1;
-  sr.command.ACT = 0;
-  sr.command.CCD = 12345;
+  sr.OD_len = EGTS_FIRMWARE_MAX_DATA;
+  sr.OD = egts_firmware_tx_buf;
+  memset( egts_firmware_tx_buf , 0xA5 , EGTS_FIRMWARE_MAX_DATA );
 
   /**************************************
   *
   */
 
   /* subrec.subrecord.SRL - auto */
-  subrecord.subrecord.SRT = EGTS_SR_COMMAND_DATA;
+  subrecord.subrecord.SRT = EGTS_SR_SERVICE_PART_DATA;
   subrecord.SRD           = (void*)&sr;
   record.psubrecords = &subrecord;
   record.nsubrecords = 1;
@@ -350,7 +326,7 @@ void send_test_COMMANDS_COMMAND_DATA_cmd(
   probes_ctx.precords = &record;
   probes_ctx.nrecords = 1;
   probes_ctx.last_result = 0;
-  egts_probe_printf("COMMANDS.EGTS_SR_COMMAND_DATA (simple COM) ... ");
+  egts_probe_printf("FIRMWARE.EGTS_SR_SERVICE_PART_DATA (simple, max length, first) ... ");
   egts_reset_errors( estate );
   egts_tx_packet( estate , pprofile , PR , proute , PID, presponce ,
     &record , 1 ,
@@ -366,9 +342,9 @@ void send_test_COMMANDS_COMMAND_DATA_cmd(
 
 /*****************************************************************************/
 /*                                                                           */
-/* send_test_COMMANDS_COMMAND_DATA_cmdx()                                    */
+/* send_test_FIRMWARE_PART_DATA_2x()                                         */
 /*                                                                           */
-/* Description: Test function for COMMANDS_COMMAND_DATA packet               */
+/* Description: Test function for FIRMWARE_PART_DATA packet                  */
 /*                                                                           */
 /* Arguments: estate - protocol instance                                     */
 /*            pprofile - transmit settings                                   */
@@ -385,7 +361,7 @@ void send_test_COMMANDS_COMMAND_DATA_cmd(
 /*                                                                           */
 /*****************************************************************************/
 
-void send_test_COMMANDS_COMMAND_DATA_cmdx(
+void send_test_FIRMWARE_PART_DATA_2x(
   egts_state_t*   estate ,
   egts_profile_t* pprofile ,
   u8              PR , 
@@ -396,12 +372,10 @@ void send_test_COMMANDS_COMMAND_DATA_cmdx(
   u16             temp_buf_sz
   )
 {
-
-
   egts_record_t               record;
   egts_subrecord_t            subrecord;
 
-  egts_COMMANDS_COMMAND_DATA_t   sr;
+  egts_FIRMWARE_PART_DATA_t   sr;
 
   record.record.RL   = 0;  /* calculated automaticaly */
   record.record.RN   = 1;
@@ -413,42 +387,27 @@ void send_test_COMMANDS_COMMAND_DATA_cmdx(
   record.record.TM   = egts_set_tm( 1, 2, 3, 4, 5, 2011 );
   record.record.EVFE = 0;   record.record.EVID = 0;
   record.record.OBFE = 0;   record.record.OID  = 0;
-  record.record.SST  = EGTS_COMMANDS_SERVICE;
-  record.record.RST  = EGTS_COMMANDS_SERVICE;
+  record.record.SST  = EGTS_FIRMWARE_SERVICE;
+  record.record.RST  = EGTS_FIRMWARE_SERVICE;
 
   /**************************************
   *
   */
 
-  sr.CT    = CT_COM;
-  sr.CCT   = CC_OK;
-  sr.CID   = 1;
-  sr.SID   = 1;
+  sr.ID    = 12345;
+  sr.PN    = 2;
+  sr.EPQ   = 2;
 
-  sr.CHSFE = 1;
-  sr.CHS   = CHS_CP_1251;
-
-  sr.ACFE  = 1;
-  memset( sr.AC , 0 , sizeof(sr.AC) );
-  strcpy( (char*)sr.AC , "0123456789" );
-  sr.ACL   = 10;
-
-  sr.DT = egts_commands_tx_buf;
-  memset( sr.DT , '0' , sizeof( EGTS_COMMAND_MAX_DT ) );
-  sr.DT_len = EGTS_COMMAND_MAX_DT;
-
-  /* COM */
-  sr.command.ADR = 12345;
-  sr.command.SZ  = 1;
-  sr.command.ACT = 0;
-  sr.command.CCD = 12345;
+  sr.OD_len = EGTS_FIRMWARE_MAX_DATA;
+  sr.OD = egts_firmware_tx_buf;
+  memset( egts_firmware_tx_buf , 0xA5 , EGTS_FIRMWARE_MAX_DATA );
 
   /**************************************
   *
   */
 
   /* subrec.subrecord.SRL - auto */
-  subrecord.subrecord.SRT = EGTS_SR_COMMAND_DATA;
+  subrecord.subrecord.SRT = EGTS_SR_SERVICE_PART_DATA;
   subrecord.SRD           = (void*)&sr;
   record.psubrecords = &subrecord;
   record.nsubrecords = 1;
@@ -457,20 +416,207 @@ void send_test_COMMANDS_COMMAND_DATA_cmdx(
   probes_ctx.precords = &record;
   probes_ctx.nrecords = 1;
   probes_ctx.last_result = 0;
-  egts_probe_printf("COMMANDS.EGTS_SR_COMMAND_DATA (COM, max length) ... ");
-  egts_reset_errors( estate );
+  egts_probe_printf("FIRMWARE.EGTS_SR_SERVICE_PART_DATA (simple, max length, second) ... ");
   egts_tx_packet( estate , pprofile , PR , proute , PID, presponce ,
     &record , 1 ,
     ptemp_buf ,temp_buf_sz );
-  egts_probe_printf( ( ( estate->rx_error_count > 0 ) ||
-                     ( estate->tx_error_count > 0 ) || 
-                     ( probes_ctx.last_result != 0 ) ) ? "FAILED\n" : "PASSED\n" );
+  egts_probe_printf( (probes_ctx.last_result) ? "FAILED\n" : "PASSED\n" );
   probes_ctx.precords = NULL;
   probes_ctx.nrecords = 0;
   probes_ctx.last_result = 0;
 
+}
+
+/*****************************************************************************/
+/*                                                                           */
+/* send_test_FIRMWARE_FULL_DATA()                                            */
+/*                                                                           */
+/* Description: Test function for FIRMWARE_FULL_DATA packet                  */
+/*                                                                           */
+/* Arguments: estate - protocol instance                                     */
+/*            pprofile - transmit settings                                   */
+/*            PR - packet priority                                           */
+/*            proute - packet routing settings                               */
+/*            PID - packet identifier                                        */
+/*            presponce - optional response data                             */
+/*            ptemp_buf - temporary buffer 64KB for operation                */
+/*            temp_buf_sz - temporary buffer size                            */
+/*                                                                           */
+/* Return:    nothing                                                        */
+/*                                                                           */
+/* Other:     Not a part of mandatory code. For debug only.                  */
+/*                                                                           */
+/*****************************************************************************/
+
+void send_test_FIRMWARE_FULL_DATA(
+  egts_state_t*   estate ,
+  egts_profile_t* pprofile ,
+  u8              PR , 
+  egts_route_t*   proute ,
+  u16             PID, 
+  egts_responce_header_t* presponce ,
+  void*           ptemp_buf ,
+  u16             temp_buf_sz
+  )
+{
+  egts_record_t               record;
+  egts_subrecord_t            subrecord;
+
+  u8  test_buf[64];
+
+  egts_FIRMWARE_FULL_DATA_t   sr;
+
+  record.record.RL   = 0;  /* calculated automaticaly */
+  record.record.RN   = 1;
+  record.record.SSOD = 0;
+  record.record.RSOD = 0;
+  record.record.GRP  = 0;
+  record.record.RPP  = 0;
+  record.record.TMFE = 0;   record.record.TM   = 0;
+  record.record.EVFE = 0;   record.record.EVID = 0;
+  record.record.OBFE = 0;   record.record.OID  = 0;
+  record.record.SST  = EGTS_FIRMWARE_SERVICE;
+  record.record.RST  = EGTS_FIRMWARE_SERVICE;
+
+  /**************************************
+  *
+  */
+
+  sr.header.OT   = OT_FIRMWARE;
+  sr.header.MT   = MT_AUX;
+
+  sr.header.CMI  = 123;
+  sr.header.VER  = 1;
+  sr.header.WOS  = 12346;
+  sr.header.FN_len = 10;
+
+  memset( sr.header.FN , 0 , sizeof(sr.header.FN) );
+  strcpy( (char*)sr.header.FN , "abcdeabcde" );
+
+
+  sr.OD_len = 64;
+  sr.OD = test_buf;
+  memset( test_buf , 0xFF , 64 );
+
+  /**************************************
+  *
+  */
+
+  /* subrec.subrecord.SRL - auto */
+  subrecord.subrecord.SRT = EGTS_SR_SERVICE_FULL_DATA;
+  subrecord.SRD           = (void*)&sr;
+  record.psubrecords = &subrecord;
+  record.nsubrecords = 1;
+  
+  probes_ctx.presponce = presponce;
+  probes_ctx.precords = &record;
+  probes_ctx.nrecords = 1;
+  probes_ctx.last_result = 0;
+  egts_probe_printf("FIRMWARE.EGTS_SR_SERVICE_FULL_DATA (simple, 64b) ... ");
+  egts_tx_packet( estate , pprofile , PR , proute , PID, presponce ,
+    &record , 1 ,
+    ptemp_buf ,temp_buf_sz );
+  egts_probe_printf( (probes_ctx.last_result) ? "FAILED\n" : "PASSED\n" );
+  probes_ctx.precords = NULL;
+  probes_ctx.nrecords = 0;
+  probes_ctx.last_result = 0;
+}
+
+/*****************************************************************************/
+/*                                                                           */
+/* send_test_FIRMWARE_FULL_DATA_x()                                          */
+/*                                                                           */
+/* Description: Test function for FIRMWARE_FULL_DATA packet                  */
+/*                                                                           */
+/* Arguments: estate - protocol instance                                     */
+/*            pprofile - transmit settings                                   */
+/*            PR - packet priority                                           */
+/*            proute - packet routing settings                               */
+/*            PID - packet identifier                                        */
+/*            presponce - optional response data                             */
+/*            ptemp_buf - temporary buffer 64KB for operation                */
+/*            temp_buf_sz - temporary buffer size                            */
+/*                                                                           */
+/* Return:    nothing                                                        */
+/*                                                                           */
+/* Other:     Not a part of mandatory code. For debug only.                  */
+/*                                                                           */
+/*****************************************************************************/
+
+void send_test_FIRMWARE_FULL_DATA_x(
+  egts_state_t*   estate ,
+  egts_profile_t* pprofile ,
+  u8              PR , 
+  egts_route_t*   proute ,
+  u16             PID, 
+  egts_responce_header_t* presponce ,
+  void*           ptemp_buf ,
+  u16             temp_buf_sz
+  )
+{
+  egts_record_t               record;
+  egts_subrecord_t            subrecord;
+
+  egts_FIRMWARE_FULL_DATA_t   sr;
+
+  record.record.RL   = 0;  /* calculated automaticaly */
+  record.record.RN   = 1;
+  record.record.SSOD = 0;
+  record.record.RSOD = 0;
+  record.record.GRP  = 0;
+  record.record.RPP  = 0;
+  record.record.TMFE = 1;   
+  record.record.TM   = egts_set_tm( 1, 2, 3, 4, 5, 2011 );
+  record.record.EVFE = 0;   record.record.EVID = 0;
+  record.record.OBFE = 0;   record.record.OID  = 0;
+  record.record.SST  = EGTS_FIRMWARE_SERVICE;
+  record.record.RST  = EGTS_FIRMWARE_SERVICE;
+
+  /**************************************
+  *
+  */
+
+  sr.header.OT   = OT_FIRMWARE;
+  sr.header.MT   = MT_AUX;
+
+  sr.header.CMI  = 123;
+  sr.header.VER  = 1;
+  sr.header.WOS  = 12346;
+  sr.header.FN_len = 10;
+
+  memset( sr.header.FN , 0 , sizeof(sr.header.FN) );
+  strcpy( (char*)sr.header.FN , "abcdeabcde" );
+
+
+  sr.OD_len = EGTS_FIRMWARE_MAX_DATA;
+  sr.OD = egts_firmware_tx_buf;
+  memset( egts_firmware_tx_buf , 0xA5 , EGTS_FIRMWARE_MAX_DATA );
+
+  /**************************************
+  *
+  */
+
+  /* subrec.subrecord.SRL - auto */
+  subrecord.subrecord.SRT = EGTS_SR_SERVICE_FULL_DATA;
+  subrecord.SRD           = (void*)&sr;
+  record.psubrecords = &subrecord;
+  record.nsubrecords = 1;
+  
+  probes_ctx.presponce = presponce;
+  probes_ctx.precords = &record;
+  probes_ctx.nrecords = 1;
+  probes_ctx.last_result = 0;
+  egts_probe_printf("FIRMWARE.EGTS_SR_SERVICE_FULL_DATA (simple, max length) ... ");
+  egts_tx_packet( estate , pprofile , PR , proute , PID, presponce ,
+    &record , 1 ,
+    ptemp_buf ,temp_buf_sz );
+  egts_probe_printf( (probes_ctx.last_result) ? "FAILED\n" : "PASSED\n" );
+  probes_ctx.precords = NULL;
+  probes_ctx.nrecords = 0;
+  probes_ctx.last_result = 0;
 }
 
 /******************************************************************************
 *
 */
+

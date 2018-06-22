@@ -10,7 +10,7 @@
 /*                                                                           */
 /* Language: C                                                               */
 /*                                                                           */
-/* (c) Copyright JSC «Navigation-information systems», 2011                  */
+/* (c) Copyright JSC ï¿½Navigation-information systemsï¿½, 2011                  */
 /*                                                                           */
 /* Address:                                                                  */
 /*     24, Mishina Str., bld.1                                               */

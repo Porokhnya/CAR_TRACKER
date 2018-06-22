@@ -10,7 +10,7 @@
 /*                                                                           */
 /* Language: C                                                               */
 /*                                                                           */
-/* (c) Copyright JSC «Navigation-information systems», 2011                  */
+/* (c) Copyright JSC ï¿½Navigation-information systemsï¿½, 2011                  */
 /*                                                                           */
 /* Address:                                                                  */
 /*     24, Mishina Str., bld.1                                               */
@@ -24,9 +24,9 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#include "egts/include/egts_config.h"
-#include "egts/include/egts.h"
-#include "egts/include/egts_impl.h"
+#include <egts_config.h>
+#include <egts.h>
+#include <egts_impl.h>
 
 /******************************************************************************
 *
@@ -34,10 +34,10 @@
 
 #include "egts_probe.h"
 
-#include "auth/probe_auth.h"
-#include "commands/probe_commands.h"
-#include "firmware/probe_firmware.h"
-#include "ecall/probe_ecall.h"
+#include "probe_auth.h"
+#include "probe_commands.h"
+#include "probe_firmware.h"
+#include "probe_ecall.h"
 
 /******************************************************************************
 *
