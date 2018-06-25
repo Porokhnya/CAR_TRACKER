@@ -14,6 +14,11 @@ char outBuffer[OUT_BUFFER_SIZE] = {0};
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 const char HEX_CHARS[]  PROGMEM = {"0123456789ABCDEF"};
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#define SD_CS_PIN 10 // номер пина CS для SD
+#include <SdFat.h>
+SdFat SD;
+bool sdInitFlag = false;
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 const char* ToHex(int i)
 {  
 
@@ -31,6 +36,27 @@ const char* ToHex(int i)
   _HEX_HOLDER[1] = char1;
   
   return _HEX_HOLDER;
+}
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void writeOnSD(int encodedBytes)
+{
+  if(!sdInitFlag)
+    return;
+
+  SdFile f;
+
+  f.open("test.bin",FILE_WRITE);  
+  if(!f.isOpen())
+  {
+    Serial.println("Unable to open file!");
+    return;
+  }
+
+  f.write(outBuffer,encodedBytes);
+  f.flush();  
+  f.close();
+
+  Serial.println("Data saved to file \"test.bin\"!");
 }
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void testOutput(int encodedBytes)
@@ -70,6 +96,14 @@ void setup()
 {
 
   Serial.begin(57600);
+
+  Serial.println("Init SD...");
+  sdInitFlag = SD.begin(SD_CS_PIN,SPI_HALF_SPEED);
+  if(sdInitFlag)
+    Serial.println("SD inited successfully.");
+  else
+    Serial.println("SD init ERROR!");
+  
 
   memset(&records,0,sizeof(records));
   memset(outBuffer,0,OUT_BUFFER_SIZE);
@@ -117,6 +151,7 @@ void setup()
   Serial.println("----------------------------- AUTH TEST ------------------------------------------");
   int encodedBytes = terminal_encode(records,-1,outBuffer,OUT_BUFFER_SIZE);
   testOutput(encodedBytes);
+  writeOnSD(encodedBytes);
   memset(outBuffer,0,OUT_BUFFER_SIZE);
   
   Serial.println("----------------------------- AUTH TEST END ------------------------------------------");
