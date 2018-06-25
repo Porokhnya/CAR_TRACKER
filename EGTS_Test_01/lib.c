@@ -5,13 +5,13 @@
 #include <stdlib.h> /* malloc */
 #include <stdio.h>	/* FILENAME_MAX */
 #include <math.h>   /* add -lm to libs string when compile */
-#include <string.h>
-#include <time.h>
+//#include <string.h>
+//#include <time.h>
 #include <ctype.h>	/* isalnum */
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
+//#include <sys/types.h>
+//#include <sys/stat.h>
+//#include <fcntl.h>
+//#include <unistd.h>
 //#include <syslog.h>
 #include "lib.h"
 
@@ -191,7 +191,7 @@ static inline int is_base64(unsigned char c)
 	return (isalnum(c) || (c == '+') || (c == '/'));
 }
 //---------------------------------------------------------------------------
-
+/*
 size_t base64_encode(unsigned char const* bytes_to_encode, unsigned char *ret, unsigned int retsize)
 {
 	unsigned int in_len, i = 0, j = 0;
@@ -282,6 +282,7 @@ size_t base64_decode(unsigned char const *encoded_string, unsigned char *ret, un
 	return strlen(ret);
 }
 //---------------------------------------------------------------------------
+*/
 
 // convertation from CP-1251 to UTF-8
 // http://www.linux.org.ru/forum/development/3968525
@@ -302,7 +303,7 @@ void cp1251_to_utf8(char *out, const char *in)
 	*out = 0;
 }
 //---------------------------------------------------------------------------
-
+/*
 // log to file
 void log2file(char *fname, void *content, size_t content_size)
 {
@@ -328,6 +329,7 @@ void log2file(char *fname, void *content, size_t content_size)
 
 	}	// if( content && content_size )
 }
+*/
 //---------------------------------------------------------------------------
 
 /*
@@ -473,8 +475,7 @@ void Geo2Geo(int iSourDatum, int iDestDatum, double *pdLon, double *pdLat)
 //------------------------------------------------------------------------------
 
 /*
-   calculate intervals in seconds
-*/
+//   calculate intervals in seconds
 unsigned long long int seconds(void)
 {
 	time_t t;
@@ -485,4 +486,6 @@ unsigned long long int seconds(void)
 
 	return( (stm.tm_year * 365 + stm.tm_yday) * 86400 + stm.tm_hour * 3600 + stm.tm_min * 60 + stm.tm_sec );
 }
+*/
+
 //------------------------------------------------------------------------------

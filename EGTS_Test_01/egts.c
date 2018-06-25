@@ -11,7 +11,7 @@
 
 #include <stdlib.h> /* malloc */
 #include <string.h> /* memset */
-#include <errno.h>  /* errno */
+//#include <errno.h>  /* errno */
 #include <stdint.h> /* uint8_t, etc... */
 //#include "glonassd.h"
 #include "de.h"     // ST_ANSWER
@@ -101,7 +101,7 @@ void terminal_decode(char *parcel, int parcel_size, ST_ANSWER *answer)
 		rec_head = (EGTS_RECORD_HEADER *)&parcel[parcel_pointer];
 		// проверяем длинну присланных данных
 		if( !rec_head->RL ) {	// EGTS_PC_INVDATALEN
-			logging("terminal_decode[egts]: SDR:EGTS_PC_INVDATALEN error\n");
+			//logging("terminal_decode[egts]: SDR:EGTS_PC_INVDATALEN error\n");
 			answer->size += responce_add_record(answer->answer, answer->size, rec_head->RN, EGTS_PC_INVDATALEN);
 			answer->size += packet_finalize(answer->answer, answer->size);
 			return;
@@ -291,7 +291,7 @@ int packet_finalize(char *buffer, int pointer)
 	EGTS_PACKET_HEADER *pak_head = (EGTS_PACKET_HEADER *)buffer;
 
 	if( pointer - pak_head->HL > pak_head->FDL ) {
-		logging("terminal_decode[egts]: pak_head->FDL correct from %u to %u\n", pak_head->FDL, pointer - pak_head->HL);
+		//logging("terminal_decode[egts]: pak_head->FDL correct from %u to %u\n", pak_head->FDL, pointer - pak_head->HL);
 		pak_head->FDL = pointer - pak_head->HL;
 	}
 
@@ -363,7 +363,7 @@ int Parse_EGTS_PACKET_HEADER(ST_ANSWER *answer, char *pc, int parcel_size)
 		return 0;
 	}
 
-	if( B5 & ph->PRF ) {
+	if( BIT_B5 & ph->PRF ) {
 		logging("terminal_decode[egts]: EGTS_PC_TTLEXPIRED error\n");
 		answer->size += responce_add_responce(answer->answer, answer->size, ph->PID, EGTS_PC_TTLEXPIRED);
 		return 0;
@@ -391,7 +391,7 @@ int Parse_EGTS_PACKET_HEADER(ST_ANSWER *answer, char *pc, int parcel_size)
 	}
 
 	// проверяем сжатие данных
-	if( ph->PRF & B2 ) {
+	if( ph->PRF & BIT_B2 ) {
 		logging("terminal_decode[egts]: EGTS_PC_INC_DATAFORM error\n");
 		answer->size += responce_add_responce(answer->answer, answer->size, ph->PID, EGTS_PC_INC_DATAFORM);
 	}
@@ -425,7 +425,7 @@ int Parse_EGTS_RECORD_HEADER(EGTS_RECORD_HEADER *rec_head, EGTS_RECORD_HEADER *s
 	st_header->RFL = rec_head->RFL;
 
 	// OBFE	0		наличие в данном пакете поля OID 1 = присутствует 0 = отсутствует
-	if( st_header->RFL & B0 ) {
+	if( st_header->RFL & BIT_B0 ) {
 		st_header->OID = *(uint32_t *)&pc[rec_head_size];
 		if( st_header->OID && !strlen(answer->lastpoint.imei) ) {	// D:\Work\Borland\Satellite\egts\Рекомендации по реализации протокола передачи данных в РНИЦ.doc 5.1.1	Идентификация АС посредством поля OID
 			memset(answer->lastpoint.imei, 0, SIZE_TRACKER_FIELD);
@@ -435,13 +435,13 @@ int Parse_EGTS_RECORD_HEADER(EGTS_RECORD_HEADER *rec_head, EGTS_RECORD_HEADER *s
 	}
 
 	// EVFE	1		наличие в данном пакете поля EVID 1 = присутствует 0 = отсутствует
-	if( st_header->RFL & B1 ) {
+	if( st_header->RFL & BIT_B1 ) {
 		st_header->EVID = *(uint32_t *)&pc[rec_head_size];
 		rec_head_size += sizeof(uint32_t);
 	}
 
 	// TMFE	2		наличие в данном пакете поля TM 1 = присутствует 0 = отсутствует
-	if( st_header->RFL & B2 ) {
+	if( st_header->RFL & BIT_B2 ) {
 		st_header->TM = *(uint32_t *)&pc[rec_head_size];
 		rec_head_size += sizeof(uint32_t);
 	}
@@ -477,36 +477,36 @@ int Parse_EGTS_SR_TERM_IDENTITY(EGTS_SR_TERM_IDENTITY_RECORD *record, ST_ANSWER 
 
 	memset(answer->lastpoint.imei, 0, SIZE_TRACKER_FIELD);
 
-	if( record->FLG & B1 ) { // наличие поля IMEI в подзаписи
-		if( record->FLG & B0 ) {	// наличие поля HDID в подзаписи
+	if( record->FLG & BIT_B1 ) { // наличие поля IMEI в подзаписи
+		if( record->FLG & BIT_B0 ) {	// наличие поля HDID в подзаписи
 			record_size += sizeof(uint16_t);	// пропускаем поле HDID, если есть
 		}
 		memcpy(answer->lastpoint.imei, &pc[record_size], 15);
 		record_size += EGTS_IMEI_LEN;
-	}	// if( record->FLG & B1 )
+	}	// if( record->FLG & BIT_B1 )
 	else if( record->TID ) {
 		snprintf(answer->lastpoint.imei, SIZE_TRACKER_FIELD, "%d", record->TID);
 	}
 	// если не прислан IMEI и record->TID = 0, то answer->lastpoint.imei окажется пустым
 
 	/*
-	   if( record->FLG & B2 ){ // наличие поля IMSI в подзаписи
+	   if( record->FLG & BIT_B2 ){ // наличие поля IMSI в подзаписи
 		record_size += EGTS_IMSI_LEN;
 	   }
 
-	   if( record->FLG & B3 ){ // наличие поля LNGC в подзаписи
+	   if( record->FLG & BIT_B3 ){ // наличие поля LNGC в подзаписи
 		record_size += EGTS_LNGC_LEN;
 	   }
 
-	   if( record->FLG & B5 ){ // наличие поля NID в подзаписи
+	   if( record->FLG & BIT_B5 ){ // наличие поля NID в подзаписи
 		record_size += (3 * sizeof(uint8_t));
 	   }
 
-	   if( record->FLG & B6 ){ // наличие поля BS в подзаписи
+	   if( record->FLG & BIT_B6 ){ // наличие поля BS в подзаписи
 		record_size += sizeof(uint16_t);
 	   }
 
-	   if( record->FLG & B7 ){ // наличие поля MSISDN в подзаписи
+	   if( record->FLG & BIT_B7 ){ // наличие поля MSISDN в подзаписи
 		record_size += EGTS_MSISDN_LEN;
 	   }
 
@@ -522,8 +522,8 @@ int Parse_EGTS_SR_POS_DATA(EGTS_SR_POS_DATA_RECORD *posdata, ST_RECORD *record, 
 {
 	char *pc = (char *)posdata;
 	void *tpp;
-	struct tm tm_data;
-	time_t ulliTmp;
+//	struct tm tm_data;
+//	time_t ulliTmp;
 
 	if( !record )
 		return 0;
@@ -544,19 +544,19 @@ int Parse_EGTS_SR_POS_DATA(EGTS_SR_POS_DATA_RECORD *posdata, ST_RECORD *record, 
 	record->lat = 90.0 * posdata->LAT / 0xFFFFFFFF;
 	record->lon = 180.0 * posdata->LONG / 0xFFFFFFFF;
 	/* пиздят, как сивый мерин, присылаются в WGS84
-	   if( posdata->FLG & B1 ){ // прислано в ПЗ-90.02, надо перевести в WGS-84 ибо Если координаты не трансформировать, то возникнет погрешность до 10 м
+	   if( posdata->FLG & BIT_B1 ){ // прислано в ПЗ-90.02, надо перевести в WGS-84 ибо Если координаты не трансформировать, то возникнет погрешность до 10 м
 		//Geo2Geo(PZ90, WGS84, &record->lon, &record->lat);
-	   }	// if( posdata->FLG & B1 )
+	   }	// if( posdata->FLG & BIT_B1 )
 	*/
 
-	record->valid = (posdata->FLG & B0);
+	record->valid = (posdata->FLG & BIT_B0);
 
-	if(posdata->FLG & B5)
+	if(posdata->FLG & BIT_B5)
 		record->clat = 'S';
 	else
 		record->clat = 'N';
 
-	if(posdata->FLG & B6)
+	if(posdata->FLG & BIT_B6)
 		record->clon = 'W';
 	else
 		record->clon = 'E';
@@ -577,21 +577,21 @@ int Parse_EGTS_SR_POS_DATA(EGTS_SR_POS_DATA_RECORD *posdata, ST_RECORD *record, 
 	record->probeg *= 100;	// 0,1 км -> м.
 
 	// состояние основных дискретных входов 1 ... 8
-	record->ainputs[0] = (posdata->DIN & B0);
-	record->ainputs[1] = (posdata->DIN & B1);
-	record->ainputs[2] = (posdata->DIN & B2);
-	record->ainputs[3] = (posdata->DIN & B3);
-	record->ainputs[4] = (posdata->DIN & B4);
-	record->ainputs[5] = (posdata->DIN & B5);
-	record->ainputs[6] = (posdata->DIN & B6);
-	record->ainputs[7] = (posdata->DIN & B7);
+	record->ainputs[0] = (posdata->DIN & BIT_B0);
+	record->ainputs[1] = (posdata->DIN & BIT_B1);
+	record->ainputs[2] = (posdata->DIN & BIT_B2);
+	record->ainputs[3] = (posdata->DIN & BIT_B3);
+	record->ainputs[4] = (posdata->DIN & BIT_B4);
+	record->ainputs[5] = (posdata->DIN & BIT_B5);
+	record->ainputs[6] = (posdata->DIN & BIT_B6);
+	record->ainputs[7] = (posdata->DIN & BIT_B7);
 
 	// высота над уровнем моря
-	if( posdata->FLG & B7 ) {	// есть поле ALT
+	if( posdata->FLG & BIT_B7 ) {	// есть поле ALT
 		record->height = *(uint16_t *)&pc[sizeof(EGTS_SR_POS_DATA_RECORD)];
 		record->height += (((unsigned int)pc[sizeof(EGTS_SR_POS_DATA_RECORD) + 2]) << 16);
 
-		if( posdata->SPD & B14 )
+		if( posdata->SPD & BIT_B14 )
 			record->height *= -1;
 	}
 
@@ -613,25 +613,25 @@ int Parse_EGTS_SR_EXT_POS_DATA(EGTS_SR_EXT_POS_DATA_RECORD *posdata, ST_RECORD *
 	if( !record )
 		return 0;
 
-	if( posdata->FLG & B0 ) {	// VDOP Field Exists
+	if( posdata->FLG & BIT_B0 ) {	// VDOP Field Exists
 		data_size += sizeof(uint16_t);
 	}
 
-	if( posdata->FLG & B1 ) {	// HDOP Field Exists
+	if( posdata->FLG & BIT_B1 ) {	// HDOP Field Exists
 		record->hdop = Round(0.1 * (*(uint16_t *)&pc[data_size]), 0);
 		data_size += sizeof(uint16_t);
 	}
 
-	if( posdata->FLG & B2 ) {	// PDOP Field Exists
+	if( posdata->FLG & BIT_B2 ) {	// PDOP Field Exists
 		data_size += sizeof(uint16_t);
 	}
 
-	if( posdata->FLG & B3 ) {	// Satellites Field Exists
+	if( posdata->FLG & BIT_B3 ) {	// Satellites Field Exists
 		record->satellites = *(uint8_t *)&pc[data_size];
 		data_size += sizeof(uint8_t);
 	}
 
-	if( posdata->FLG & B4 ) {	// Navigation System Field Exists
+	if( posdata->FLG & BIT_B4 ) {	// Navigation System Field Exists
 		data_size += sizeof(uint16_t);
 	}
 
@@ -648,13 +648,13 @@ int Parse_EGTS_SR_LIQUID_LEVEL_SENSOR(int rlen, EGTS_SR_LIQUID_LEVEL_SENSOR_RECO
 	if( !record )
 		return 0;
 
-	if( posdata->FLG & B3 ) {	// размер поля LLSD определяется исходя из общей длины данной подзаписи и размеров расположенных перед LLSD полей
+	if( posdata->FLG & BIT_B3 ) {	// размер поля LLSD определяется исходя из общей длины данной подзаписи и размеров расположенных перед LLSD полей
 		data_size = rlen;	// здесь нас интересует общая длинна записи
 		// ибо как хранить такие данные хз
 	} else {	// поле LLSD имеет размер 4 байта
 		data_size = sizeof(EGTS_SR_LIQUID_LEVEL_SENSOR_RECORD);
 
-		if( !(posdata->FLG & B6) ) {	// ошибок не обнаружено
+		if( !(posdata->FLG & BIT_B6) ) {	// ошибок не обнаружено
 			if( record->fuel[0] ) {	// показания первого датчика уже записаны
 				record->fuel[1] = posdata->LLSD;
 				if( posdata->FLG & 32 )	// показания ДУЖ в литрах с дискретностью в 0,1 литра
@@ -664,7 +664,7 @@ int Parse_EGTS_SR_LIQUID_LEVEL_SENSOR(int rlen, EGTS_SR_LIQUID_LEVEL_SENSOR_RECO
 				if( posdata->FLG & 32 )	// показания ДУЖ в литрах с дискретностью в 0,1 литра
 					record->fuel[0] = 0.1 * posdata->LLSD;
 			}
-		}	// if( !(posdata->FLG & B6) )
+		}	// if( !(posdata->FLG & BIT_B6) )
 	}
 
 	return data_size;
@@ -766,6 +766,7 @@ int responce_add_subrecord_EGTS_SR_COMMAND_DATA(char *buffer, int pointer, EGTS_
    bufsize - size of buffer
    return size of data in the buffer for encoded data
 */
+
 int terminal_encode(ST_RECORD *records, int reccount, char *buffer, int bufsize)
 {
 	EGTS_RECORD_HEADER *record_header = NULL;
@@ -841,7 +842,11 @@ int terminal_encode(ST_RECORD *records, int reccount, char *buffer, int bufsize)
 	return top;
 }
 //------------------------------------------------------------------------------
-
+uint32_t getCurrentTimeInSeconds()
+{
+  //TODO: Переписать для получения времени с часов!!!
+  return 0;
+}
 
 /* добавление в егтс пакет записи EGTS_RECORD_HEADER (SDR)
    packet - указатель на буфер формирования пакета
@@ -850,7 +855,7 @@ int terminal_encode(ST_RECORD *records, int reccount, char *buffer, int bufsize)
    rst - идентификатор тип Сервиса-получателя
    возвращает новый размер данных в буфере
 */
-static int packet_add_record_header(char *packet, int position, uint8_t sst, uint8_t rst)
+int packet_add_record_header(char *packet, int position, uint8_t sst, uint8_t rst)
 {
 	EGTS_PACKET_HEADER *packet_header = (EGTS_PACKET_HEADER *)packet;
 	EGTS_RECORD_HEADER *record_header = (EGTS_RECORD_HEADER *)&packet[position];
@@ -859,20 +864,20 @@ static int packet_add_record_header(char *packet, int position, uint8_t sst, uin
 	uint8_t *psst, *prst, rfl;
 	uint32_t *poid, *pevid, *ptm;
 
-	rfl = B7 + B4 + B3 + B2;	// битовые флаги (запись сформирована в абонентском терминале + приоритет низкий + есть поле TM)
+	rfl = BIT_B7 + BIT_B4 + BIT_B3 + BIT_B2;	// битовые флаги (запись сформирована в абонентском терминале + приоритет низкий + есть поле TM)
 	/* у меня это лишнее, но пусть будет:
 	   расчет адресов полей и
 	   расчет длинны EGTS_RECORD_HEADER в хависимости от поля rfl
 	*/
 	rh_size = sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint8_t);	// первые обязательные поля
 	new_size = position + rh_size;
-	if( rfl & B0 )	// наличие в данном пакете поля OID
+	if( rfl & BIT_B0 )	// наличие в данном пакете поля OID
 		new_size += sizeof(uint32_t);
 
-	if( rfl & B1 )	// наличие в данном пакете поля EVID
+	if( rfl & BIT_B1 )	// наличие в данном пакете поля EVID
 		new_size += sizeof(uint32_t);
 
-	if( rfl & B2 )	// наличие в данном пакете поля TM
+	if( rfl & BIT_B2 )	// наличие в данном пакете поля TM
 		new_size += sizeof(uint32_t);
 
 	new_size += sizeof(uint8_t);	// SST
@@ -887,19 +892,19 @@ static int packet_add_record_header(char *packet, int position, uint8_t sst, uin
 	record_header->RFL = rfl;
 
 	// необязательные поля
-	if( rfl & B0 ) {	// наличие в данном пакете поля OID
+	if( rfl & BIT_B0 ) {	// наличие в данном пакете поля OID
 		poid = (uint32_t *)&packet[position + rh_size];
 		rh_size += sizeof(uint32_t);
 	} else
 		poid = NULL;
 
-	if( rfl & B1 ) {	// наличие в данном пакете поля EVID
+	if( rfl & BIT_B1 ) {	// наличие в данном пакете поля EVID
 		pevid = (uint32_t *)&packet[position + rh_size];
 		rh_size += sizeof(uint32_t);
 	} else
 		pevid = NULL;
 
-	if( rfl & B2 ) {	// наличие в данном пакете поля TM
+	if( rfl & BIT_B2 ) {	// наличие в данном пакете поля TM
 		ptm = (uint32_t *)&packet[position + rh_size];
 		rh_size += sizeof(uint32_t);
 	} else
@@ -913,7 +918,7 @@ static int packet_add_record_header(char *packet, int position, uint8_t sst, uin
 		*pevid = 0;
 	// время формирования записи на стороне Отправителя
 	if( ptm ) {
-		*ptm = (uint32_t)(time(NULL) - UTS2010);
+		*ptm = (uint32_t)(getCurrentTimeInSeconds() - UTS2010);
 	}
 
 	// снова обязательные поля
@@ -933,7 +938,7 @@ static int packet_add_record_header(char *packet, int position, uint8_t sst, uin
 
 /* добавление в егтс пакет записи EGTS_SUBRECORD_HEADER (SRD)
 */
-static int packet_add_subrecord_header(char *packet, int position, EGTS_RECORD_HEADER *record_header, uint8_t srt)
+int packet_add_subrecord_header(char *packet, int position, EGTS_RECORD_HEADER *record_header, uint8_t srt)
 {
 	EGTS_PACKET_HEADER *packet_header = (EGTS_PACKET_HEADER *)packet;
 	EGTS_SUBRECORD_HEADER *subrecord_header = (EGTS_SUBRECORD_HEADER *)&packet[position];
@@ -950,10 +955,10 @@ static int packet_add_subrecord_header(char *packet, int position, EGTS_RECORD_H
 /* добавление в пакет поздаписи EGTS_SR_TERM_IDENTITY
    с данными идентификации терминала
 */
-static int packet_add_subrecord_EGTS_SR_TERM_IDENTITY(char *packet, int position, EGTS_RECORD_HEADER *record_header, EGTS_SUBRECORD_HEADER *subrecord_header, char *imei)
+int packet_add_subrecord_EGTS_SR_TERM_IDENTITY(char *packet, int position, EGTS_RECORD_HEADER *record_header, EGTS_SUBRECORD_HEADER *subrecord_header, char *imei)
 {
 	EGTS_PACKET_HEADER *packet_header = (EGTS_PACKET_HEADER *)packet;
-	//                       TID & FLG(B1 + B6)                IMEI              BS
+	//                       TID & FLG(BIT_B1 + BIT_B6)                IMEI              BS
 	int rec_size = sizeof(EGTS_SR_TERM_IDENTITY_RECORD) + EGTS_IMEI_LEN + sizeof(uint16_t);
 	int new_size = position + rec_size;
 	char *pimei;
@@ -966,13 +971,13 @@ static int packet_add_subrecord_EGTS_SR_TERM_IDENTITY(char *packet, int position
 
 	record = (EGTS_SR_TERM_IDENTITY_RECORD *)&packet[position];
 	// уникальный идентификатор, назначаемый при программировании АТ
-	if( record_header->RFL & B0 )
+	if( record_header->RFL & BIT_B0 )
 		record->TID = *(uint32_t *)(&record_header->RFL + sizeof(uint8_t));
 	else
 		record->TID = 50;	// :)
 
 	// Flags
-	record->FLG = B1 + B6;	// наличие поля IMEI + наличие поля BS в подзаписи
+	record->FLG = BIT_B1 + BIT_B6;	// наличие поля IMEI + наличие поля BS в подзаписи
 
 	// imei
 	pimei = (char *)&packet[position + sizeof(EGTS_SR_TERM_IDENTITY_RECORD)];
@@ -990,7 +995,7 @@ static int packet_add_subrecord_EGTS_SR_TERM_IDENTITY(char *packet, int position
 /* добавление в пакет поздаписи EGTS_SR_POS_DATA
    с данными навигации
 */
-static int packet_add_subrecord_EGTS_SR_POS_DATA_RECORD(char *packet, int position, EGTS_RECORD_HEADER *record_header, EGTS_SUBRECORD_HEADER *subrecord_header, ST_RECORD *record)
+int packet_add_subrecord_EGTS_SR_POS_DATA_RECORD(char *packet, int position, EGTS_RECORD_HEADER *record_header, EGTS_SUBRECORD_HEADER *subrecord_header, ST_RECORD *record)
 {
 	EGTS_PACKET_HEADER *packet_header = (EGTS_PACKET_HEADER *)packet;
 	int rec_size = sizeof(EGTS_SR_POS_DATA_RECORD) + sizeof(uint8_t) * 3;	// высота над уровнем моря
@@ -1010,16 +1015,16 @@ static int packet_add_subrecord_EGTS_SR_POS_DATA_RECORD(char *packet, int positi
 	pos_data_rec->LAT = record->lat / 90 * 0xFFFFFFFF;
 	pos_data_rec->LONG = record->lon / 180 * 0xFFFFFFFF;
 
-	pos_data_rec->FLG = B2;			// тип определения координат: 0 - 2D fix; 1 - 3D fix
-	pos_data_rec->FLG += B7;		// определяет наличие поля ALT в подзаписи
+	pos_data_rec->FLG = BIT_B2;			// тип определения координат: 0 - 2D fix; 1 - 3D fix
+	pos_data_rec->FLG += BIT_B7;		// определяет наличие поля ALT в подзаписи
 	if( record->valid )         // признак "валидности"
-		pos_data_rec->FLG += B0;
+		pos_data_rec->FLG += BIT_B0;
 	if( record->speed )        // признак движения: 1 - движение
-		pos_data_rec->FLG += B4;
+		pos_data_rec->FLG += BIT_B4;
 	if( record->clat == 'S' )  // определяет полушарие широты:  0 - северная 1 - южная
-		pos_data_rec->FLG += B5;
+		pos_data_rec->FLG += BIT_B5;
 	if( record->clon == 'W' )  // определяет полушарие долготы 0 - восточная 1 - западная
-		pos_data_rec->FLG += B6;
+		pos_data_rec->FLG += BIT_B6;
 
 	// 14 младших бит, скорость в км/ч с дискретностью 0,1 км/ч
 	pos_data_rec->SPD = 10 * record->speed;
@@ -1062,7 +1067,7 @@ static int packet_add_subrecord_EGTS_SR_POS_DATA_RECORD(char *packet, int positi
 /* добавление в пакет поздаписи EGTS_SR_EXT_POS_DATA
    с дополнительными данными навигации
 */
-static int packet_add_subrecord_EGTS_SR_EXT_POS_DATA_RECORD(char *packet, int position, EGTS_RECORD_HEADER *record_header, EGTS_SUBRECORD_HEADER *subrecord_header, ST_RECORD *record)
+int packet_add_subrecord_EGTS_SR_EXT_POS_DATA_RECORD(char *packet, int position, EGTS_RECORD_HEADER *record_header, EGTS_SUBRECORD_HEADER *subrecord_header, ST_RECORD *record)
 {
 	EGTS_PACKET_HEADER *packet_header = (EGTS_PACKET_HEADER *)packet;
 	int rec_size = sizeof(EGTS_SR_EXT_POS_DATA_RECORD) + sizeof(uint8_t);	// количество видимых спутников
@@ -1075,7 +1080,7 @@ static int packet_add_subrecord_EGTS_SR_EXT_POS_DATA_RECORD(char *packet, int po
 	subrecord_header->SRL = rec_size;
 
 	pos_data_rec = (EGTS_SR_EXT_POS_DATA_RECORD *)&packet[position];
-	pos_data_rec->FLG = B3;	// определяет наличие поля SAT
+	pos_data_rec->FLG = BIT_B3;	// определяет наличие поля SAT
 
 	puint8_t = (uint8_t *)(&pos_data_rec->FLG + sizeof(uint8_t));
 	*puint8_t = record->satellites;
@@ -1087,7 +1092,7 @@ static int packet_add_subrecord_EGTS_SR_EXT_POS_DATA_RECORD(char *packet, int po
 /* добавление в пакет поздаписи EGTS_SR_LIQUID_LEVEL_SENSOR
    с дополнительными данными навигации
 */
-static int packet_add_subrecord_EGTS_SR_LIQUID_LEVEL_SENSOR_RECORD(char *packet, int position, EGTS_RECORD_HEADER *record_header, EGTS_SUBRECORD_HEADER *subrecord_header, ST_RECORD *record)
+int packet_add_subrecord_EGTS_SR_LIQUID_LEVEL_SENSOR_RECORD(char *packet, int position, EGTS_RECORD_HEADER *record_header, EGTS_SUBRECORD_HEADER *subrecord_header, ST_RECORD *record)
 {
 	EGTS_PACKET_HEADER *packet_header = (EGTS_PACKET_HEADER *)packet;
 	int rec_size = sizeof(EGTS_SR_LIQUID_LEVEL_SENSOR_RECORD);

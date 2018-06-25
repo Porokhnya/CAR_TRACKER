@@ -9,11 +9,7 @@
 
 #include <stdio.h>  /* snprintf, FILENAME_MAX */
 #include <stdlib.h> /* malloc */
-#include <string.h> /* memset */
-#include <errno.h>  /* errno */
-#include <time.h>	/* localtime */
 #include <math.h>	/* fabs */
-//#include <syslog.h>
 
 #ifndef MILE
 #define MILE 1.852	// коэфф мили/километры
@@ -39,7 +35,7 @@ typedef struct {
 	char soft[SIZE_TRACKER_FIELD];	// software version of terminal
 	char clon;      // longitude part (N/S)
 	char clat;      // latitude part (E/W)
-	time_t data;    // GPS date
+	/*time_t*/ uint32_t data;    // GPS date
 	unsigned int status;    // terminas status field (bits field)
 	unsigned int recnum;    // number of record
 	unsigned int time;      // GPS time (converting to seconds from 00:00:00 of day)

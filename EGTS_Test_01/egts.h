@@ -48,22 +48,22 @@ EGTS_PACKET {
 #define __EGTS__
 
 // для проверки битов
-#define B15 32768
-#define B14 16384
-#define B13 8192
-#define B12 4096
-#define B11 2048
-#define B10 1024
-#define B9  512
-#define B8  256
-#define B7 	128
-#define B6 	64
-#define B5 	32
-#define B4 	16
-#define B3 	8
-#define B2 	4
-#define B1 	2
-#define B0 	1
+#define BIT_B15 32768
+#define BIT_B14 16384
+#define BIT_B13 8192
+#define BIT_B12 4096
+#define BIT_B11 2048
+#define BIT_B10 1024
+#define BIT_B9  512
+#define BIT_B8  256
+#define BIT_B7 	128
+#define BIT_B6 	64
+#define BIT_B5 	32
+#define BIT_B4 	16
+#define BIT_B3 	8
+#define BIT_B2 	4
+#define BIT_B1 	2
+#define BIT_B0 	1
 
 // Тип пакета Транспортного Уровня
 #define EGTS_PT_RESPONSE 0
@@ -648,13 +648,26 @@ int Parse_EGTS_SR_EXT_POS_DATA(EGTS_SR_EXT_POS_DATA_RECORD *posdata, ST_RECORD *
 int Parse_EGTS_SR_LIQUID_LEVEL_SENSOR(int rlen, EGTS_SR_LIQUID_LEVEL_SENSOR_RECORD *posdata, ST_RECORD *record);
 int Parse_EGTS_SR_COMMAND_DATA(ST_ANSWER *answer, EGTS_SR_COMMAND_DATA_RECORD *record);
 
-// функции для encode
-static int packet_add_record_header(char *packet, int position, uint8_t sst, uint8_t rst);
-static int packet_add_subrecord_header(char *packet, int position, EGTS_RECORD_HEADER *record_header, uint8_t srt);
-static int packet_add_subrecord_EGTS_SR_TERM_IDENTITY(char *packet, int position, EGTS_RECORD_HEADER *record_header, EGTS_SUBRECORD_HEADER *subrecord_header, char *imei);
-static int packet_add_subrecord_EGTS_SR_POS_DATA_RECORD(char *packet, int position, EGTS_RECORD_HEADER *record_header, EGTS_SUBRECORD_HEADER *subrecord_header, ST_RECORD *record);
-static int packet_add_subrecord_EGTS_SR_EXT_POS_DATA_RECORD(char *packet, int position, EGTS_RECORD_HEADER *record_header, EGTS_SUBRECORD_HEADER *subrecord_header, ST_RECORD *record);
-static int packet_add_subrecord_EGTS_SR_LIQUID_LEVEL_SENSOR_RECORD(char *packet, int position, EGTS_RECORD_HEADER *record_header, EGTS_SUBRECORD_HEADER *subrecord_header, ST_RECORD *record);
+
+  #ifdef __cplusplus
+  extern "C" {
+  #endif
+    int terminal_encode(ST_RECORD *records, int reccount, char *buffer, int bufsize);
+    
+    // функции для encode
+    int packet_add_record_header(char *packet, int position, uint8_t sst, uint8_t rst);
+    int packet_add_subrecord_header(char *packet, int position, EGTS_RECORD_HEADER *record_header, uint8_t srt);
+    int packet_add_subrecord_EGTS_SR_TERM_IDENTITY(char *packet, int position, EGTS_RECORD_HEADER *record_header, EGTS_SUBRECORD_HEADER *subrecord_header, char *imei);
+    int packet_add_subrecord_EGTS_SR_POS_DATA_RECORD(char *packet, int position, EGTS_RECORD_HEADER *record_header, EGTS_SUBRECORD_HEADER *subrecord_header, ST_RECORD *record);
+    int packet_add_subrecord_EGTS_SR_EXT_POS_DATA_RECORD(char *packet, int position, EGTS_RECORD_HEADER *record_header, EGTS_SUBRECORD_HEADER *subrecord_header, ST_RECORD *record);
+    int packet_add_subrecord_EGTS_SR_LIQUID_LEVEL_SENSOR_RECORD(char *packet, int position, EGTS_RECORD_HEADER *record_header, EGTS_SUBRECORD_HEADER *subrecord_header, ST_RECORD *record);
+
+    // заглушка для получения текущего времени в секундах
+    uint32_t getCurrentTimeInSeconds();
+    
+  #ifdef __cplusplus
+  }
+  #endif
 
 #endif
 

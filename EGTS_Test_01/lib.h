@@ -19,13 +19,13 @@
 
 unsigned short CRC16 ( unsigned char *puchMsg, unsigned short usDataLen );
 unsigned char CRC8(unsigned char *puchMsg, unsigned short usDataLen);
-size_t base64_encode(unsigned char const* bytes_to_encode, unsigned char *ret, unsigned int retsize);
-size_t base64_decode(unsigned char const *encoded_string, unsigned char *ret, unsigned int retsize);
+//size_t base64_encode(unsigned char const* bytes_to_encode, unsigned char *ret, unsigned int retsize);
+//size_t base64_decode(unsigned char const *encoded_string, unsigned char *ret, unsigned int retsize);
 double Round(double Value, int SignNumber);
 void geoDistance(double dLon0, double dLat0, double dLon1, double dLat1, double *dDist, unsigned int *iBear);
 void cp1251_to_utf8(char *out, const char *in);
-void log2file(char *fname, void *content, size_t content_size);
+//void log2file(char *fname, void *content, size_t content_size);
 void Geo2Geo(int iSourDatum, int iDestDatum, double *pdLon, double *pdLat);
-unsigned long long int seconds(void);
+//unsigned long long int seconds(void);
 
 #endif
