@@ -117,7 +117,7 @@ void terminal_decode(char *parcel, int parcel_size, ST_ANSWER *answer)
 			srd_head = (EGTS_SUBRECORD_HEADER *)&parcel[parcel_pointer];
 			// проверяем длинну присланных данных
 			if( !srd_head->SRL ) {
-				logging("terminal_decode[egts]: SRD:EGTS_PC_INVDATALEN error\n");
+				//logging("terminal_decode[egts]: SRD:EGTS_PC_INVDATALEN error\n");
 				answer->size += responce_add_record(answer->answer, answer->size, rec_head->RN, EGTS_PC_INVDATALEN);
 				answer->size += packet_finalize(answer->answer, answer->size);
 				return;
@@ -346,31 +346,31 @@ int Parse_EGTS_PACKET_HEADER(ST_ANSWER *answer, char *pc, int parcel_size)
 	EGTS_PACKET_HEADER *ph = (EGTS_PACKET_HEADER *)pc;
 
 	if( ph->PRV != 1 || (ph->PRF & 192) ) {
-		logging("terminal_decode[egts]: EGTS_PC_UNS_PROTOCOL error\n");
+		//logging("terminal_decode[egts]: EGTS_PC_UNS_PROTOCOL error\n");
 		answer->size += responce_add_responce(answer->answer, answer->size, ph->PID, EGTS_PC_UNS_PROTOCOL);
 		return 0;
 	}
 
 	if( ph->HL != 11 && ph->HL != 16 ) {
-		logging("terminal_decode[egts]: EGTS_PC_INC_HEADERFORM error\n");
+		//logging("terminal_decode[egts]: EGTS_PC_INC_HEADERFORM error\n");
 		answer->size += responce_add_responce(answer->answer, answer->size, ph->PID, EGTS_PC_INC_HEADERFORM);
 		return 0;
 	}
 
 	if( CRC8EGTS((unsigned char *)ph, ph->HL-1) != ph->HCS ) {
-		logging("terminal_decode[egts]: EGTS_PC_HEADERCRC_ERROR error %u/%u\n", CRC8EGTS((unsigned char *)ph, ph->HL-1), ph->HCS);
+		//logging("terminal_decode[egts]: EGTS_PC_HEADERCRC_ERROR error %u/%u\n", CRC8EGTS((unsigned char *)ph, ph->HL-1), ph->HCS);
 		answer->size += responce_add_responce(answer->answer, answer->size, ph->PID, EGTS_PC_HEADERCRC_ERROR);
 		return 0;
 	}
 
 	if( BIT_B5 & ph->PRF ) {
-		logging("terminal_decode[egts]: EGTS_PC_TTLEXPIRED error\n");
+		//logging("terminal_decode[egts]: EGTS_PC_TTLEXPIRED error\n");
 		answer->size += responce_add_responce(answer->answer, answer->size, ph->PID, EGTS_PC_TTLEXPIRED);
 		return 0;
 	}
 
 	if( !ph->FDL ) {
-		logging("terminal_decode[egts]: EGTS_PC_OK\n");
+		//logging("terminal_decode[egts]: EGTS_PC_OK\n");
 		answer->size += responce_add_responce(answer->answer, answer->size, ph->PID, EGTS_PC_OK);
 		return 0;
 	}
@@ -378,21 +378,21 @@ int Parse_EGTS_PACKET_HEADER(ST_ANSWER *answer, char *pc, int parcel_size)
 	// проверяем CRC16
 	unsigned short *SFRCS = (unsigned short *)&pc[ph->HL + ph->FDL];
 	if( *SFRCS != CRC16EGTS( (unsigned char *)&pc[ph->HL], ph->FDL) ) {
-		logging("terminal_decode[egts]: EGTS_PC_DATACRC_ERROR error\n");
+		//logging("terminal_decode[egts]: EGTS_PC_DATACRC_ERROR error\n");
 		answer->size += responce_add_responce(answer->answer, answer->size, ph->PID, EGTS_PC_DATACRC_ERROR);
 		return 0;
 	}
 
 	// проверяем шифрование данных
 	if( ph->PRF & 24 ) {
-		logging("terminal_decode[egts]: EGTS_PC_DECRYPT_ERROR error\n");
+		//logging("terminal_decode[egts]: EGTS_PC_DECRYPT_ERROR error\n");
 		answer->size += responce_add_responce(answer->answer, answer->size, ph->PID, EGTS_PC_DECRYPT_ERROR);
 		return 0;
 	}
 
 	// проверяем сжатие данных
 	if( ph->PRF & BIT_B2 ) {
-		logging("terminal_decode[egts]: EGTS_PC_INC_DATAFORM error\n");
+		//logging("terminal_decode[egts]: EGTS_PC_INC_DATAFORM error\n");
 		answer->size += responce_add_responce(answer->answer, answer->size, ph->PID, EGTS_PC_INC_DATAFORM);
 	}
 

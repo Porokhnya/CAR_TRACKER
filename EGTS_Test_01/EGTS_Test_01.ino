@@ -38,17 +38,19 @@ const char* ToHex(int i)
   return _HEX_HOLDER;
 }
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void writeOnSD(int encodedBytes)
+void writeOnSD(int encodedBytes, const char* filename)
 {
   if(!sdInitFlag)
     return;
 
   SdFile f;
 
-  f.open("test.bin",FILE_WRITE);  
+  f.open(filename,FILE_WRITE);  
   if(!f.isOpen())
   {
-    Serial.println("Unable to open file!");
+    Serial.print("Unable to open file \"");
+    Serial.print(filename);
+    Serial.println("\"!");
     return;
   }
 
@@ -56,7 +58,9 @@ void writeOnSD(int encodedBytes)
   f.flush();  
   f.close();
 
-  Serial.println("Data saved to file \"test.bin\"!");
+  Serial.print("Data saved to file \"");
+  Serial.print(filename);
+  Serial.println("\"!");
 }
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void testOutput(int encodedBytes)
@@ -151,7 +155,7 @@ void setup()
   Serial.println("----------------------------- AUTH TEST ------------------------------------------");
   int encodedBytes = terminal_encode(records,-1,outBuffer,OUT_BUFFER_SIZE);
   testOutput(encodedBytes);
-  writeOnSD(encodedBytes);
+  writeOnSD(encodedBytes, "test.bin");
   memset(outBuffer,0,OUT_BUFFER_SIZE);
   
   Serial.println("----------------------------- AUTH TEST END ------------------------------------------");
@@ -161,6 +165,7 @@ void setup()
   Serial.println("----------------------------- MAIN TEST ------------------------------------------");
   encodedBytes = terminal_encode(records,1,outBuffer,OUT_BUFFER_SIZE);
   testOutput(encodedBytes);
+  writeOnSD(encodedBytes, "test1.bin");
   Serial.println("----------------------------- MAIN TEST END ------------------------------------------");
   
 
