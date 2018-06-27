@@ -123,6 +123,10 @@ void setup()
   strcpy(records[0].hard,"0.1a");
   strcpy(records[0].soft,"0.1a");
 
+
+  // признак валидности записи
+  records[0].valid = 1;
+
   // пишем дату от балды
   records[0].data = 1234;
 
@@ -138,6 +142,8 @@ void setup()
   // номер записи
   records[0].recnum = 12;
 
+  // пробег, с дискретностью 0.1 км
+  records[0].probeg = 88.9;
 
   // широта/долгота
   records[0].lon = 12.24;
@@ -146,6 +152,8 @@ void setup()
   // скорость, км/ч
   records[0].speed = 49.36;
 
+  // курс?
+  records[0].curs = 99;
 
   // показания топлива
   records[0].fuel[0] = 4321;
