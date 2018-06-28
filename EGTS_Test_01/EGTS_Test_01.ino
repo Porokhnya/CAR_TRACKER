@@ -115,13 +115,13 @@ void setup()
 
   
   // идентификатор терминала
-  strcpy(records[0].imei,"TEST TERM");
+//  strcpy(records[0].imei,"TEST TERM");
   
-  strcpy(records[0].tracker,"EGTS");
+//  strcpy(records[0].tracker,"EGTS");
 
   // версии терминалов (железо и софт)
-  strcpy(records[0].hard,"0.1a");
-  strcpy(records[0].soft,"0.1a");
+//  strcpy(records[0].hard,"0.1a");
+//  strcpy(records[0].soft,"0.1a");
 
 
   // признак валидности записи
@@ -146,8 +146,8 @@ void setup()
   records[0].probeg = 88.9;
 
   // широта/долгота
-  records[0].lon = 12.24;
-  records[0].lat = 13.26;
+  records[0].lon = 1;//12.24;
+  records[0].lat = 1;//13.26;
 
   // скорость, км/ч
   records[0].speed = 49.36;
